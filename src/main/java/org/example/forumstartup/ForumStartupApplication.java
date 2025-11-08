@@ -1,0 +1,13 @@
+package org.example.forumstartup;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class ForumStartupApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ForumStartupApplication.class, args);
+    }
+
+}
