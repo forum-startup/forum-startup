@@ -39,12 +39,6 @@ public class Post {
     @Size(min = 32, max = 8192, message = CONTENT_SIZE_CONSTRAINT_MESSAGE)
     private String content;
 
-    @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
     @Column(name = "likes_count")
     private Integer likesCount = 0;
 
@@ -74,6 +68,12 @@ public class Post {
             uniqueConstraints = @UniqueConstraint(columnNames = {"post_id", "tag_id"})
     )
     private Set<Tag> tags = new HashSet<>();
+
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     @PrePersist
     public void onCreate() {

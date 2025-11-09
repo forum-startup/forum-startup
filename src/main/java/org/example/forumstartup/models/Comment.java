@@ -9,7 +9,6 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static org.example.forumstartup.utils.StringConstants.COMMENT_SIZE_CONSTRAINT_MESSAGE;
