@@ -8,6 +8,7 @@ import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("user", "id", id.toString()));
@@ -36,6 +38,7 @@ public class UserServiceImpl implements UserService {
         use @PreAuthorize("hasRole('ADMIN')") from Spring Security
      */
     @Override
+    @Transactional(readOnly = true)
     public User getUserByUsername(String username, User actingUser) {
         requireAdmin(actingUser);
 
@@ -44,6 +47,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public User getUserByEmail(String email, User actingUser) {
         requireAdmin(actingUser);
 
@@ -52,6 +56,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> searchUsersByFirstName(String firstName, User actingUser) {
         requireAdmin(actingUser);
 
@@ -59,6 +64,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<User> getAll(User actingUser) {
         requireAdmin(actingUser);
         return repository.findAll();
@@ -69,6 +75,7 @@ public class UserServiceImpl implements UserService {
         Add RegisterUserDto with caution to what fields are exposed
      */
     @Override
+    @Transactional
     public User create(User user) {
         if (!isDuplicate(user)) {
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
@@ -82,6 +89,7 @@ public class UserServiceImpl implements UserService {
         Add AdminUpdateUserDto, UserSelfUpdateDto
      */
     @Override
+    @Transactional
     public User update(Long id, User userUpdates, User actingUser) {
         User user = getUserById(id);
 
@@ -140,6 +148,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id, User actingUser) {
         User user = getUserById(id);
 
@@ -154,6 +163,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void block(Long id, User actingUser) {
         User user = getUserById(id);
         requireAdmin(actingUser);
@@ -163,6 +173,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void unblock(Long id, User actingUser) {
         User user = getUserById(id);
         requireAdmin(actingUser);
