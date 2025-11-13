@@ -20,8 +20,7 @@ public class PostController {
 
     @GetMapping("/{postId}")
     public ResponseEntity<Post> getById(@PathVariable long postId) {
-        Post post = service.getById(postId);
-        return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(service.getById(postId));
     }
 
     @PostMapping("/{postId}/likes")
@@ -29,6 +28,7 @@ public class PostController {
         service.like(postId, userId);
         return ResponseEntity.noContent().build();
     }
+
     @DeleteMapping("/{postId}/likes")
     public ResponseEntity<Void> unlike(@PathVariable long postId,
                                        @RequestParam long userId) {
@@ -43,10 +43,8 @@ public class PostController {
         User creator = new User();
         creator.setId(creatorId);
         Post newPost = service.create(creator, title, content);
-        if (newPost == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
         return ResponseEntity.status(HttpStatus.CREATED).body(newPost);
+
     }
 
     @PutMapping("/{postId}")
@@ -58,15 +56,13 @@ public class PostController {
         author.setId(creatorId);
 
         Post updated = service.edit(postId, author, titleToUpdate, contentToUpdate);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(updated);
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> delete(@PathVariable long postId,
                                        @RequestParam long creatorId) {
-        if (service.getById(postId) == null) {
-            return ResponseEntity.notFound().build();
-        }
+
         User user = new User();
         user.setId(creatorId);
         service.delete(postId, user);
@@ -75,7 +71,7 @@ public class PostController {
 
     @GetMapping("/by-author/{creatorId}")
     public ResponseEntity<List<Post>> getByCreatorId(@PathVariable long creatorId,
-                                                    @RequestParam(defaultValue = "10") int limit) {
+                                                     @RequestParam(defaultValue = "10") int limit) {
         return ResponseEntity.ok(service.findByCreatorId(creatorId, limit));
     }
 

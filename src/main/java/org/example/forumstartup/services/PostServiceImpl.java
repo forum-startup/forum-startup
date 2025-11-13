@@ -1,5 +1,7 @@
 package org.example.forumstartup.services;
 
+import org.example.forumstartup.exceptions.AuthorizationException;
+import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
@@ -16,7 +18,8 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
-    public PostServiceImpl(PostRepository postRepository, UserRepository userRepository) {
+    public PostServiceImpl(PostRepository postRepository,
+                           UserRepository userRepository) {
         this.postRepository = postRepository;
         this.userRepository = userRepository;
     }
@@ -24,15 +27,20 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public Post getById(Long id) {
-        return postRepository.findById(id).orElse(null);
+        return postRepository.findById(id)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", id.toString()));
     }
 
     @Override
     @Transactional
     public Post create(User creator, String title, String content) {
-        User user = userRepository.findById(creator.getId()).orElse(null);
-        if (user == null) {
-            return null;
+        User user = userRepository.findById(creator.getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException("User", "id", creator.getId().toString()));
+
+        if (user.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot create posts");
         }
 
         Post post = new Post();
@@ -46,10 +54,21 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public Post edit(Long postId, User creator, String titleToUpdate, String contentToUpdate) {
-        Post post = postRepository.findById(postId).orElse(null);
-        if (post == null) {
-            return null;
+    public Post edit(Long postId, User editor, String titleToUpdate, String contentToUpdate) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        User user = userRepository.findById(editor.getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException("User", "id", editor.getId().toString()));
+
+        if (user.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot edit posts");
+        }
+
+        if (!post.getCreator().getId().equals(user.getId())) {
+            throw new AuthorizationException("You are not allowed to edit this post");
         }
 
         if (titleToUpdate != null && !titleToUpdate.isBlank()) {
@@ -65,37 +84,76 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void delete(Long postId, User creator) {
-        postRepository.deleteById(postId);
+    public void delete(Long postId, User requester) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        User user = userRepository.findById(requester.getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException("User", "id", requester.getId().toString()));
+
+        if (user.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot delete posts");
+        }
+
+        if (!post.getCreator().getId().equals(user.getId())) {
+            throw new AuthorizationException("You are not allowed to delete this post");
+        }
+
+        postRepository.delete(post);
     }
 
     @Override
     @Transactional
     public void like(Long postId, Long userId) {
-        Post post = postRepository.findById(postId).orElse(null);
-        if (post == null) return;
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return;
-        if (post.getCreator().getId().equals(userId)) return;
-        if (post.getLikedBy().contains(user)) return;
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("User", "id", userId.toString()));
+
+        if (user.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot like posts");
+        }
+
+        if (post.getCreator().getId().equals(userId)) {
+            throw new AuthorizationException("You cannot like your own post");
+        }
+
+        if (post.getLikedBy().contains(user)) {
+            return;
+        }
+
         post.getLikedBy().add(user);
         Integer current = post.getLikesCount();
         post.setLikesCount((current == null ? 0 : current) + 1);
+
         postRepository.save(post);
     }
 
     @Override
     @Transactional
     public void unlike(Long postId, Long userId) {
-        Post post = postRepository.findById(postId).orElse(null);
-        if (post == null) return;
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return;
-        if (!post.getLikedBy().contains(user)) return;
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("User", "id", userId.toString()));
+
+        if (!post.getLikedBy().contains(user)) {
+            return;
+        }
+
         post.getLikedBy().remove(user);
         Integer current = post.getLikesCount();
         int newCount = (current == null ? 0 : Math.max(0, current - 1));
         post.setLikesCount(newCount);
+
         postRepository.save(post);
     }
 
@@ -114,7 +172,10 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<Post> findByCreatorId(Long id, int limit) {
-        List<Post> posts = postRepository.findByCreatorId(id, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Post> posts = postRepository.findByCreatorId(
+                id,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
         return trimToLimit(posts, limit);
     }
 
