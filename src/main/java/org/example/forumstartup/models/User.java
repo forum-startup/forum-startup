@@ -40,7 +40,7 @@ public class User {
     @NotBlank
     private String email;
 
-    @Column(name = "username", updatable = false, nullable = false, unique = true)
+    @Column(name = "username", nullable = false, unique = true)
     @NotBlank
     private String username;
 
