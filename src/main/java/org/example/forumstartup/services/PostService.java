@@ -6,17 +6,17 @@ import org.example.forumstartup.models.User;
 import java.util.List;
 
 public interface PostService {
-    Post create(User creator, String title, String content);
+    Post create(User currentUser, String title, String content);
+
+    Post edit(Long postId, User currentUser, String titleToUpdate, String contentToUpdate);
+
+    void delete(Long postId, User currentUser);
+
+    void like(Long postId, User currentUser);
+
+    void unlike(Long postId, User currentUser);
 
     Post getById(Long id);
-
-    Post edit(Long postId, User creator, String updatedTitle, String updatedContent);
-
-    void delete(Long postId, User creator);
-
-    void like(Long postId, Long creatorId);
-
-    void unlike(Long postId, Long creatorId);
 
     List<Post> mostRecent(int limit);
 
