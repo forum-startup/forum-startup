@@ -1,13 +1,17 @@
 package org.example.forumstartup.controllers;
 
-import org.example.forumstartup.models.Post;
-import org.example.forumstartup.models.User;
+import jakarta.validation.Valid;
+import org.example.forumstartup.models.*;
 import org.example.forumstartup.services.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.example.forumstartup.helpers.PostMapper.toDto;
+import static org.example.forumstartup.helpers.PostMapper.toDtoList;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -18,80 +22,81 @@ public class PostController {
         this.service = service;
     }
 
+    // ========= PUBLIC READ ENDPOINTS =========
+
     @GetMapping("/{postId}")
-    public ResponseEntity<Post> getById(@PathVariable long postId) {
+    public ResponseEntity<PostResponseDto> getById(@PathVariable long postId) {
         Post post = service.getById(postId);
-        return post != null ? ResponseEntity.ok(post) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(toDto(post));
     }
 
-    @PostMapping("/{postId}/likes")
-    public ResponseEntity<Void> like(@PathVariable long postId, @RequestParam long userId) {
-        service.like(postId, userId);
-        return ResponseEntity.noContent().build();
+    @GetMapping("/by-author/{creatorId}")
+    public ResponseEntity<List<PostResponseDto>> getByCreatorId(@PathVariable long creatorId,
+                                                                @RequestParam(defaultValue = "10") int limit) {
+        List<Post> posts = service.findByCreatorId(creatorId, limit);
+        List<PostResponseDto> result = toDtoList(posts);
+        return ResponseEntity.ok(result);
     }
-    @DeleteMapping("/{postId}/likes")
-    public ResponseEntity<Void> unlike(@PathVariable long postId,
-                                       @RequestParam long userId) {
-        service.unlike(postId, userId);
-        return ResponseEntity.noContent().build();
+
+    @GetMapping("/recent")
+    public ResponseEntity<List<PostResponseDto>> getRecent(@RequestParam(defaultValue = "10") int limit) {
+        List<Post> posts = service.mostRecent(limit);
+        List<PostResponseDto> result = toDtoList(posts);
+        return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/top-commented")
+    public ResponseEntity<List<PostResponseDto>> topCommented(@RequestParam(defaultValue = "10") int limit) {
+        List<Post> posts = service.topCommented(limit);
+        List<PostResponseDto> result = toDtoList(posts);
+        return ResponseEntity.ok(result);
+
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<PostResponseDto>> search(@RequestParam(name = "word") String textToSearch,
+                                                        @RequestParam(defaultValue = "10") int limit) {
+        List<Post> posts = service.search(textToSearch, limit);
+        List<PostResponseDto> result = toDtoList(posts);
+        return ResponseEntity.ok(result);
+    }
+    // ========= PRIVATE WRITE ENDPOINTS (JWT/BASIC AUTH REQUIRED) =========
 
     @PostMapping
-    public ResponseEntity<Post> create(@RequestParam long creatorId,
-                                       @RequestParam String title,
-                                       @RequestParam String content) {
-        User creator = new User();
-        creator.setId(creatorId);
-        Post newPost = service.create(creator, title, content);
-        if (newPost == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(newPost);
+    public ResponseEntity<PostResponseDto> create(@AuthenticationPrincipal User currentUser, @Valid
+    @RequestBody PostCreateDto dto) {
+        Post newPost = service.create(currentUser, dto.getTitle(), dto.getContent());
+        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(newPost));
+
     }
 
     @PutMapping("/{postId}")
-    public ResponseEntity<Post> edit(@PathVariable long postId,
-                                     @RequestParam long creatorId,
-                                     @RequestParam(required = false) String titleToUpdate,
-                                     @RequestParam(required = false) String contentToUpdate) {
-        User author = new User();
-        author.setId(creatorId);
-
-        Post updated = service.edit(postId, author, titleToUpdate, contentToUpdate);
-        return updated != null ? ResponseEntity.ok(updated) : ResponseEntity.notFound().build();
+    public ResponseEntity<PostResponseDto> edit(@PathVariable long postId,
+                                                @AuthenticationPrincipal User currentUser,
+                                                @RequestBody @Valid PostUpdateDto dto
+    ) {
+        Post updated = service.edit(postId, currentUser, dto.getTitle(), dto.getContent());
+        return ResponseEntity.ok(toDto(updated));
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> delete(@PathVariable long postId,
-                                       @RequestParam long creatorId) {
-        if (service.getById(postId) == null) {
-            return ResponseEntity.notFound().build();
-        }
-        User user = new User();
-        user.setId(creatorId);
-        service.delete(postId, user);
+                                       @AuthenticationPrincipal User currentUser) {
+        service.delete(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/by-author/{creatorId}")
-    public ResponseEntity<List<Post>> getByCreatorId(@PathVariable long creatorId,
-                                                    @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(service.findByCreatorId(creatorId, limit));
+
+    @PostMapping("/{postId}/likes")
+    public ResponseEntity<Void> like(@PathVariable long postId, @AuthenticationPrincipal User currentUser) {
+        service.like(postId, currentUser);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/recent")
-    public ResponseEntity<List<Post>> getRecent(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(service.mostRecent(limit));
-    }
-
-    @GetMapping("/top-commented")
-    public ResponseEntity<List<Post>> topCommented(@RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(service.topCommented(limit));
-    }
-
-    @GetMapping("/search")
-    public ResponseEntity<List<Post>> search(@RequestParam(name = "word") String textToSearch,
-                                             @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(service.search(textToSearch, limit));
+    @DeleteMapping("/{postId}/likes")
+    public ResponseEntity<Void> unlike(@PathVariable long postId,
+                                       @AuthenticationPrincipal User currentUser) {
+        service.unlike(postId, currentUser);
+        return ResponseEntity.noContent().build();
     }
 }

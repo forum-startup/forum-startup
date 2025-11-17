@@ -1,102 +1,36 @@
 package org.example.forumstartup.services;
 
+import org.example.forumstartup.enums.Role;
+import org.example.forumstartup.exceptions.AuthorizationException;
+import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
-import org.example.forumstartup.repositories.UserRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.example.forumstartup.helpers.ListUtils.trimToLimit;
+
 @Service
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final UserRepository userRepository;
 
-    public PostServiceImpl(PostRepository postRepository, UserRepository userRepository) {
+    public PostServiceImpl(PostRepository postRepository) {
         this.postRepository = postRepository;
-        this.userRepository = userRepository;
     }
+
+    // ========= READ METHODS =========
 
     @Override
     @Transactional(readOnly = true)
     public Post getById(Long id) {
-        return postRepository.findById(id).orElse(null);
-    }
-
-    @Override
-    @Transactional
-    public Post create(User creator, String title, String content) {
-        User user = userRepository.findById(creator.getId()).orElse(null);
-        if (user == null) {
-            return null;
-        }
-
-        Post post = new Post();
-        post.setCreator(user);
-        post.setTitle(title != null ? title.trim() : null);
-        post.setContent(content != null ? content.trim() : null);
-        post.setLikesCount(0);
-
-        return postRepository.save(post);
-    }
-
-    @Override
-    @Transactional
-    public Post edit(Long postId, User creator, String titleToUpdate, String contentToUpdate) {
-        Post post = postRepository.findById(postId).orElse(null);
-        if (post == null) {
-            return null;
-        }
-
-        if (titleToUpdate != null && !titleToUpdate.isBlank()) {
-            post.setTitle(titleToUpdate.trim());
-        }
-
-        if (contentToUpdate != null && !contentToUpdate.isBlank()) {
-            post.setContent(contentToUpdate.trim());
-        }
-
-        return postRepository.save(post);
-    }
-
-    @Override
-    @Transactional
-    public void delete(Long postId, User creator) {
-        postRepository.deleteById(postId);
-    }
-
-    @Override
-    @Transactional
-    public void like(Long postId, Long userId) {
-        Post post = postRepository.findById(postId).orElse(null);
-        if (post == null) return;
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return;
-        if (post.getCreator().getId().equals(userId)) return;
-        if (post.getLikedBy().contains(user)) return;
-        post.getLikedBy().add(user);
-        Integer current = post.getLikesCount();
-        post.setLikesCount((current == null ? 0 : current) + 1);
-        postRepository.save(post);
-    }
-
-    @Override
-    @Transactional
-    public void unlike(Long postId, Long userId) {
-        Post post = postRepository.findById(postId).orElse(null);
-        if (post == null) return;
-        User user = userRepository.findById(userId).orElse(null);
-        if (user == null) return;
-        if (!post.getLikedBy().contains(user)) return;
-        post.getLikedBy().remove(user);
-        Integer current = post.getLikesCount();
-        int newCount = (current == null ? 0 : Math.max(0, current - 1));
-        post.setLikesCount(newCount);
-        postRepository.save(post);
+        return postRepository.findById(id)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", id.toString()));
     }
 
     @Override
@@ -114,7 +48,10 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<Post> findByCreatorId(Long id, int limit) {
-        List<Post> posts = postRepository.findByCreatorId(id, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Post> posts = postRepository.findByCreatorId(
+                id,
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
         return trimToLimit(posts, limit);
     }
 
@@ -125,11 +62,109 @@ public class PostServiceImpl implements PostService {
         return trimToLimit(posts, limit);
     }
 
-    private List<Post> trimToLimit(List<Post> posts, int limit) {
-        if (posts == null || posts.isEmpty()) {
-            return posts;
+    // ========= WRITE METHODS (changed) =========
+
+    @Override
+    @Transactional
+    public Post create(User currentUser, String title, String content) {
+        // currentUser comes from SecurityContext (@AuthenticationPrincipal)
+        if (currentUser.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot create posts");
         }
-        int max = Math.max(1, Math.min(limit, 50));
-        return posts.size() > max ? posts.subList(0, max) : posts;
+
+        Post post = new Post();
+        post.setCreator(currentUser);
+        post.setTitle(title != null ? title.trim() : null);
+        post.setContent(content != null ? content.trim() : null);
+        post.setLikesCount(0);
+
+        return postRepository.save(post);
+    }
+
+    @Override
+    @Transactional
+    public Post edit(Long postId, User currentUser,
+                     String titleToUpdate, String contentToUpdate) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        if (currentUser.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot edit posts");
+        }
+
+        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new AuthorizationException("You are not allowed to edit this post");
+        }
+        return postRepository.save(post);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long postId, User currentUser) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        if (currentUser.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot delete posts");
+        }
+
+        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new AuthorizationException("You are not allowed to delete this post");
+        }
+
+        postRepository.delete(post);
+    }
+
+    @Override
+    @Transactional
+    public void like(Long postId, User currentUser) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        if (currentUser.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot like posts");
+        }
+
+        if (post.getCreator().getId().equals(currentUser.getId())) {
+            throw new AuthorizationException("You cannot like your own post");
+        }
+
+        if (post.getLikedBy().contains(currentUser)) {
+            return; // already liked
+        }
+
+        post.getLikedBy().add(currentUser);
+        Integer current = post.getLikesCount();
+        post.setLikesCount((current == null ? 0 : current) + 1);
+
+        postRepository.save(post);
+    }
+
+    @Override
+    @Transactional
+    public void unlike(Long postId, User currentUser) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", postId.toString()));
+
+        if (!post.getLikedBy().contains(currentUser)) {
+            return;
+        }
+        post.getLikedBy().remove(currentUser);
+        Integer current = post.getLikesCount();
+        int newCount = (current == null ? 0 : Math.max(0, current - 1));
+        post.setLikesCount(newCount);
+
+        postRepository.save(post);
     }
 }
