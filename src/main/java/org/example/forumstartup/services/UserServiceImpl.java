@@ -1,11 +1,18 @@
 package org.example.forumstartup.services;
 
-import org.example.forumstartup.enums.Role;
+import lombok.RequiredArgsConstructor;
+import org.example.forumstartup.dtos.AdminSelfUpdateDto;
+import org.example.forumstartup.dtos.UserSelfUpdateDto;
+import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.DuplicateEntityException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
+import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.User;
+import org.example.forumstartup.repositories.RoleRepository;
 import org.example.forumstartup.repositories.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,200 +21,247 @@ import java.util.List;
 
 import static org.example.forumstartup.utils.StringConstants.*;
 
+/*
+    TODO: MAKE SURE TO ADD GLOBAL EXCEPTION HANDLER!
+ */
+
 @Service
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
 
-    private final UserRepository repository;
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository repository, PasswordEncoder passwordEncoder) {
-        this.repository = repository;
-        this.passwordEncoder = passwordEncoder;
-    }
-
+    /*
+        Not sure what to do with this method (will we be using it anywhere?)
+     */
     @Override
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
-        return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("user", "id", id.toString()));
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User", "id", id.toString()));
     }
 
     /*
-        TODO:
-        Instead of manually passing User user to authorize,
-        use @PreAuthorize("hasRole('ADMIN')") from Spring Security
+        Admin only
      */
     @Override
     @Transactional(readOnly = true)
-    public User getUserByUsername(String username, User actingUser) {
-        requireAdmin(actingUser);
-
-        return repository.findByUsername(username)
+    public User getUserByUsername(String username) {
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User", "username", username));
     }
 
+    /*
+        Admin only
+     */
     @Override
     @Transactional(readOnly = true)
-    public User getUserByEmail(String email, User actingUser) {
-        requireAdmin(actingUser);
-
-        return repository.findByEmail(email)
+    public User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new EntityNotFoundException("User", "email", email));
     }
 
+    /*
+        Admin only
+     */
     @Override
     @Transactional(readOnly = true)
-    public List<User> searchUsersByFirstName(String firstName, User actingUser) {
-        requireAdmin(actingUser);
-
-        return repository.searchUserByFirstName(firstName);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<User> getAll(User actingUser) {
-        requireAdmin(actingUser);
-        return repository.findAll();
+    public List<User> searchUsersByFirstName(String firstName) {
+        return userRepository.searchUserByFirstName(firstName);
     }
 
     /*
-        TODO:
-        Add RegisterUserDto with caution to what fields are exposed
+        Admin only
      */
+    @Override
+    @Transactional(readOnly = true)
+    public List<User> getAll() {
+        return userRepository.findAll();
+    }
+
     @Override
     @Transactional
     public User create(User user) {
         if (!isDuplicate(user)) {
-            user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
-            return repository.save(user);
+            Role userRole = roleRepository.findByName(ERole.ROLE_USER)
+                    .orElseThrow(() -> new EntityNotFoundException("User role not found"));
+            user.getRoles().add(userRole);
+
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+            return userRepository.save(user);
         }
         throw new DuplicateEntityException(DUPLICATE_USER_INFORMATION_EXCEPTION_MESSAGE);
     }
 
     /*
-        TODO:
-        Add AdminUpdateUserDto, UserSelfUpdateDto
+        Regular user self update
      */
     @Override
     @Transactional
-    public User update(Long id, User userUpdates, User actingUser) {
-        User user = getUserById(id);
+    public User update(UserSelfUpdateDto dto) {
+        User actingUser = getAuthenticatedUser();
 
-        boolean admin = isAdmin(actingUser);
+        updateCommonFields(
+                actingUser,
+                dto.firstName(),
+                dto.lastName(),
+                dto.email(),
+                dto.password(),
+                dto.profilePhotoUrl()
+        );
 
-        // Permission check
-        if (!admin && !actingUser.getId().equals(id)) {
-            throw new AuthorizationException(UNAUTHORIZED_ACTION_EXCEPTION_MESSAGE);
-        }
-
-        // Admin update
-        if (admin) {
-            if (userUpdates.getFirstName() != null)
-                user.setFirstName(userUpdates.getFirstName());
-
-            if (userUpdates.getLastName() != null)
-                user.setLastName(userUpdates.getLastName());
-
-            if (userUpdates.getUsername() != null) {
-                ensureUsernameAvailable(user, userUpdates);
-                user.setUsername(userUpdates.getUsername());
-            }
-
-            if (userUpdates.getRole() != null)
-                user.setRole(userUpdates.getRole());
-
-            if (userUpdates.getPhoneNumber() != null)
-                user.setPhoneNumber(userUpdates.getPhoneNumber());
-
-            if (userUpdates.getProfilePhotoUrl() != null)
-                user.setProfilePhotoUrl(userUpdates.getProfilePhotoUrl());
-        }
-
-        // Regular user update
-        else {
-            if (userUpdates.getFirstName() != null)
-                user.setFirstName(userUpdates.getFirstName());
-
-            if (userUpdates.getLastName() != null)
-                user.setLastName(userUpdates.getLastName());
-
-            if (userUpdates.getEmail() != null) {
-                ensureEmailAvailable(user, userUpdates);
-                user.setEmail(userUpdates.getEmail());
-            }
-
-            if (userUpdates.getProfilePhotoUrl() != null)
-                user.setProfilePhotoUrl(userUpdates.getProfilePhotoUrl());
-
-            if (userUpdates.getPasswordHash() != null) {
-                user.setPasswordHash(passwordEncoder.encode(userUpdates.getPasswordHash()));
-            }
-        }
-
-        return repository.saveAndFlush(user);
+        return userRepository.saveAndFlush(actingUser);
     }
 
+    /*
+        Admin self update
+     */
     @Override
     @Transactional
-    public void delete(Long id, User actingUser) {
-        User user = getUserById(id);
+    public User update(AdminSelfUpdateDto dto) {
+        User actingUser = getAuthenticatedUser();
 
-        boolean admin = isAdmin(actingUser);
+        updateCommonFields(
+                actingUser,
+                dto.firstName(),
+                dto.lastName(),
+                dto.email(),
+                dto.password(),
+                dto.profilePhotoUrl()
+        );
 
-        // Permission check
-        if (!admin && !actingUser.getId().equals(id)) {
-            throw new AuthorizationException(UNAUTHORIZED_ACTION_EXCEPTION_MESSAGE);
+        if (dto.username() != null) {
+            ensureUsernameAvailable(actingUser, dto.username());
+            actingUser.setUsername(dto.username());
         }
+        if (dto.phoneNumber() != null) actingUser.setPhoneNumber(dto.phoneNumber());
 
-        repository.delete(user);
+        return userRepository.saveAndFlush(actingUser);
     }
 
+    /*
+        Admin only, deletes any user
+     */
     @Override
     @Transactional
-    public void block(Long id, User actingUser) {
+    public void delete(Long id) {
+        User actingUser = getAuthenticatedUser();
+
+        if (!isAdmin(actingUser) && !actingUser.getId().equals(id)) {
+            throw new AuthorizationException("You are not allowed to delete this account.");
+        }
+
+        User deleteUser;
+
+        if (id != null) {
+            deleteUser = getUserById(id);
+        } else {
+            deleteUser = actingUser;
+        }
+
+
+        userRepository.delete(deleteUser);
+    }
+
+    /*
+        Self delete, allowed for regular users
+     */
+    @Override
+    @Transactional
+    public void deleteSelf() {
+        User actingUser = getAuthenticatedUser();
+        userRepository.delete(actingUser);
+    }
+
+    /*
+        Admin only
+     */
+    @Override
+    @Transactional
+    public void block(Long id) {
         User user = getUserById(id);
-        requireAdmin(actingUser);
         user.setBlocked(true);
 
-        repository.saveAndFlush(user);
+        userRepository.saveAndFlush(user);
     }
 
+    /*
+        Admin only
+     */
     @Override
     @Transactional
-    public void unblock(Long id, User actingUser) {
+    public void unblock(Long id) {
         User user = getUserById(id);
-        requireAdmin(actingUser);
         user.setBlocked(false);
 
-        repository.saveAndFlush(user);
+        userRepository.saveAndFlush(user);
     }
 
-    private boolean isAdmin(User user) {
-        return user.getRole() == Role.ADMIN;
-    }
+    /*
+        Admin only
+     */
+    @Override
+    @Transactional
+    public void promoteToAdmin(Long id) {
+        User actingAdmin = getAuthenticatedUser();
 
-    private void requireAdmin(User actingUser) {
-        if (!isAdmin(actingUser)) {
-            throw new AuthorizationException(UNAUTHORIZED_ACTION_EXCEPTION_MESSAGE);
+        if (!isAdmin(actingAdmin)) {
+            throw new AuthorizationException("Only admins can promote users");
         }
+
+        User targetUser = getUserById(id);
+
+        Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
+                .orElseThrow(() -> new EntityNotFoundException("Admin role not found"));
+        targetUser.getRoles().add(adminRole);
+
+        userRepository.saveAndFlush(targetUser);
     }
 
     private boolean isDuplicate(User user) {
-        return repository.existsByUsernameOrEmail(user.getUsername(), user.getEmail());
+        return userRepository.existsByUsernameOrEmail(user.getUsername(), user.getEmail());
     }
 
-    private void ensureUsernameAvailable(User user, User userUpdates) {
-        if (!user.getUsername().equals(userUpdates.getUsername())
-                && repository.existsByUsername(userUpdates.getUsername())) {
+    private boolean isAdmin(User user) {
+        return user.getRoles().stream()
+                .anyMatch(r -> r.getName().equals(ERole.ROLE_ADMIN));
+    }
+
+    private void updateCommonFields(User user, String firstName, String lastName, String email, String password, String profilePhotoUrl) {
+        if (firstName != null) user.setFirstName(firstName);
+        if (lastName != null) user.setLastName(lastName);
+        if (email != null) {
+            ensureEmailAvailable(user, email);
+            user.setEmail(email);
+        }
+        if (password != null) user.setPassword(passwordEncoder.encode(password));
+        if (profilePhotoUrl != null) user.setProfilePhotoUrl(profilePhotoUrl);
+    }
+
+    private void ensureUsernameAvailable(User actingUser, String username) {
+        if (!actingUser.getUsername().equals(username)
+                && userRepository.existsByUsername(username)) {
             throw new DuplicateEntityException(USERNAME_ALREADY_EXISTS);
         }
     }
 
-    private void ensureEmailAvailable(User user, User userUpdates) {
-        if (!user.getEmail().equals(userUpdates.getEmail())
-                && repository.existsByEmail(userUpdates.getEmail())) {
+    private void ensureEmailAvailable(User actingUser, String email) {
+        if (!actingUser.getEmail().equals(email)
+                && userRepository.existsByEmail(email)) {
             throw new DuplicateEntityException(EMAIL_ALREADY_EXISTS);
         }
+    }
+
+    private User getAuthenticatedUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        String username = authentication.getName(); // Extracted from JWT automatically
+
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User", "username", username));
     }
 
 }
