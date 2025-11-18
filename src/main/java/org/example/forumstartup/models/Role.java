@@ -20,6 +20,9 @@ public class Role {
     @Column(name = "role_id")
     private Long id;
 
+    /*
+        TODO: Add @NotNull
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "name", length = 20)
     private ERole name;
