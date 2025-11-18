@@ -1,18 +1,11 @@
 package org.example.forumstartup.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.example.forumstartup.enums.Role;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
-
-import static org.example.forumstartup.utils.StringConstants.*;
 
 @Entity
 @Table(name = "users")
@@ -28,37 +21,41 @@ public class User {
     private Long id;
 
     @Column(name = "first_name", nullable = false)
-    @Size(min = 4, max = 32, message = FIRST_NAME_SIZE_CONSTRAINT_MESSAGE)
     private String firstName;
 
     @Column(name = "last_name", nullable = false)
-    @Size(min = 4, max = 32, message = LAST_NAME_SIZE_CONSTRAINT_MESSAGE)
     private String lastName;
 
     @Column(name = "email", nullable = false, unique = true)
-    @Email(message = EMAIL_TYPE_CONSTRAINT_MESSAGE)
-    @NotBlank
     private String email;
 
     @Column(name = "username", nullable = false, unique = true)
-    @NotBlank
     private String username;
 
-    @Column(name = "password_hash", nullable = false)
-    private String passwordHash;
+    @Column(name = "password", nullable = false)
+    private String password;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role", nullable = false)
-    private Role role;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
+    )
+    private Set<Role> roles = new HashSet<>();
 
-    // nullable by default
+    /*
+        nullable by default
+     */
     @Column(name = "phone_number")
     private String phoneNumber;
 
     @Column(name = "profile_photo_url")
     private String profilePhotoUrl;
 
-    // set to false by default
+    /*
+        set to false by default
+     */
     @Column(name = "is_blocked", nullable = false)
     private boolean isBlocked = false;
 
@@ -77,8 +74,33 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    // will automatically set createdAt to current time
-    // when an entity is about to be created in the DB
+    /*
+        Regular user
+     */
+    public User(String firstName, String lastName, String email, String username, String password) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+    }
+
+    /*
+        Admin user with option for phone number
+     */
+    public User(String firstName, String lastName, String email, String username, String password, String phoneNumber) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.username = username;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+    }
+
+    /*
+        Will automatically set createdAt to current time
+        when an entity is about to be created in the DB
+     */
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
