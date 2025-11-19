@@ -66,7 +66,7 @@ public class PostController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<PostResponseDto> create(@AuthenticationPrincipal User currentUser, @Valid
     @RequestBody PostCreateDto dto) {
-        Post newPost = service.create(currentUser, dto.getTitle(), dto.getContent());
+        Post newPost = service.create(currentUser, dto.title(), dto.content());
         return ResponseEntity.status(HttpStatus.CREATED).body(toDto(newPost));
 
     }
@@ -77,7 +77,7 @@ public class PostController {
                                                 @AuthenticationPrincipal User currentUser,
                                                 @RequestBody @Valid PostUpdateDto dto
     ) {
-        Post updated = service.edit(postId, currentUser, dto.getTitle(), dto.getContent());
+        Post updated = service.edit(postId, currentUser, dto.title(), dto.content());
         return ResponseEntity.ok(toDto(updated));
     }
 

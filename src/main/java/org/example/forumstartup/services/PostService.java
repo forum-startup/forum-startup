@@ -11,7 +11,7 @@ public interface PostService {
     Post edit(Long postId, User currentUser, String titleToUpdate, String contentToUpdate);
 
     void delete(Long postId, User currentUser);
-
+    void adminDelete(Long postId, User adminUser);
     void like(Long postId, User currentUser);
 
     void unlike(Long postId, User currentUser);
