@@ -4,6 +4,7 @@ import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
+import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
 import org.springframework.data.domain.Sort;
@@ -24,8 +25,12 @@ public class PostServiceImpl implements PostService {
     }
 
     private boolean isAdmin(User user) {
-        return user.getRoles().stream()
-                .anyMatch(r -> r.getName().equals(ERole.ROLE_ADMIN));
+        for (Role r : user.getRoles()) {
+            if (r.getName().equals(ERole.ROLE_ADMIN)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void ensureNotBlocked(User user) {
@@ -51,13 +56,13 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<Post> mostRecent(int limit) {
-        return trimToLimit(postRepository.findTop10ByOrderByCreatedAtDesc(),limit);
+        return trimToLimit(postRepository.findTop10ByOrderByCreatedAtDesc(), limit);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Post> topCommented(int limit) {
-        return trimToLimit(postRepository.findTop10MostCommented(),limit);
+        return trimToLimit(postRepository.findTop10MostCommented(), limit);
     }
 
     @Override

@@ -107,7 +107,7 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    // ========= Admin ENDPOINT =========
+    // ========= ADMIN ENDPOINT =========
     @DeleteMapping("/admin/posts/{postId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> adminDelete(@PathVariable long postId,
