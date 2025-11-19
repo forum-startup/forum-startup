@@ -8,6 +8,7 @@ import org.example.forumstartup.models.*;
 import org.example.forumstartup.services.PostService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +18,7 @@ import static org.example.forumstartup.mappers.PostMapper.toDto;
 import static org.example.forumstartup.mappers.PostMapper.toDtoList;
 
 @RestController
-@RequestMapping("/api/posts")
+@RequestMapping("/api")
 public class PostController {
     private final PostService service;
 
@@ -27,45 +28,42 @@ public class PostController {
 
     // ========= PUBLIC READ ENDPOINTS =========
 
-    @GetMapping("/{postId}")
+    @GetMapping("/public/posts/{postId}")
     public ResponseEntity<PostResponseDto> getById(@PathVariable long postId) {
         Post post = service.getById(postId);
         return ResponseEntity.ok(toDto(post));
     }
 
-    @GetMapping("/by-author/{creatorId}")
+    @GetMapping("/public/posts/by-author/{creatorId}")
     public ResponseEntity<List<PostResponseDto>> getByCreatorId(@PathVariable long creatorId,
-                                                                @RequestParam(defaultValue = "10") int limit) {
-        List<Post> posts = service.findByCreatorId(creatorId, limit);
-        List<PostResponseDto> result = toDtoList(posts);
-        return ResponseEntity.ok(result);
+                                                                @RequestParam(defaultValue = "10")
+                                                                int limit) {
+        return ResponseEntity.ok(toDtoList(service.findByCreatorId(creatorId, limit)));
     }
 
-    @GetMapping("/recent")
-    public ResponseEntity<List<PostResponseDto>> getRecent(@RequestParam(defaultValue = "10") int limit) {
-        List<Post> posts = service.mostRecent(limit);
-        List<PostResponseDto> result = toDtoList(posts);
-        return ResponseEntity.ok(result);
+    @GetMapping("/public/posts/recent")
+    public ResponseEntity<List<PostResponseDto>> getRecent(@RequestParam(defaultValue = "10")
+                                                           int limit) {
+        return ResponseEntity.ok(toDtoList(service.mostRecent(limit)));
     }
 
-    @GetMapping("/top-commented")
-    public ResponseEntity<List<PostResponseDto>> topCommented(@RequestParam(defaultValue = "10") int limit) {
-        List<Post> posts = service.topCommented(limit);
-        List<PostResponseDto> result = toDtoList(posts);
-        return ResponseEntity.ok(result);
-
+    @GetMapping("/public/posts/top-commented")
+    public ResponseEntity<List<PostResponseDto>> topCommented(@RequestParam(defaultValue = "10")
+                                                              int limit) {
+        return ResponseEntity.ok(toDtoList(service.topCommented(limit)));
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<PostResponseDto>> search(@RequestParam(name = "word") String textToSearch,
-                                                        @RequestParam(defaultValue = "10") int limit) {
-        List<Post> posts = service.search(textToSearch, limit);
-        List<PostResponseDto> result = toDtoList(posts);
-        return ResponseEntity.ok(result);
+    @GetMapping("/public/posts/search")
+    public ResponseEntity<List<PostResponseDto>> search(@RequestParam(name = "word")
+                                                        String textToSearch,
+                                                        @RequestParam(defaultValue = "10")
+                                                        int limit) {
+        return ResponseEntity.ok(toDtoList(service.search(textToSearch, limit)));
     }
-    // ========= PRIVATE WRITE ENDPOINTS (JWT/BASIC AUTH REQUIRED) =========
+    // ========= PRIVATE WRITE ENDPOINTS =========
 
-    @PostMapping
+    @PostMapping("/private/posts")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<PostResponseDto> create(@AuthenticationPrincipal User currentUser, @Valid
     @RequestBody PostCreateDto dto) {
         Post newPost = service.create(currentUser, dto.getTitle(), dto.getContent());
@@ -73,7 +71,8 @@ public class PostController {
 
     }
 
-    @PutMapping("/{postId}")
+    @PutMapping("/private/posts/{postId}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<PostResponseDto> edit(@PathVariable long postId,
                                                 @AuthenticationPrincipal User currentUser,
                                                 @RequestBody @Valid PostUpdateDto dto
@@ -82,24 +81,37 @@ public class PostController {
         return ResponseEntity.ok(toDto(updated));
     }
 
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/private/posts/{postId}")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> delete(@PathVariable long postId,
                                        @AuthenticationPrincipal User currentUser) {
         service.delete(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
 
+    // ========= PRIVATE LIKE ENDPOINTS =========
 
-    @PostMapping("/{postId}/likes")
+    @PostMapping("/private/posts/{postId}/likes")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> like(@PathVariable long postId, @AuthenticationPrincipal User currentUser) {
         service.like(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{postId}/likes")
+    @DeleteMapping("/private/posts/{postId}/likes")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> unlike(@PathVariable long postId,
                                        @AuthenticationPrincipal User currentUser) {
         service.unlike(postId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ========= Admin ENDPOINT =========
+    @DeleteMapping("/admin/posts/{postId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> adminDelete(@PathVariable long postId,
+                                            @AuthenticationPrincipal User adminUser) {
+        service.adminDelete(postId, adminUser);
         return ResponseEntity.noContent().build();
     }
 }
