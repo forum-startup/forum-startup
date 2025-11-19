@@ -1,13 +1,13 @@
-package org.example.forumstartup.controllers.rest;
+package org.example.forumstartup.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.example.forumstartup.dtos.JwtResponseDto;
-import org.example.forumstartup.dtos.LoginUserDto;
-import org.example.forumstartup.dtos.RegisterUserDto;
+import org.example.forumstartup.dtos.jwt.JwtResponseDto;
+import org.example.forumstartup.dtos.user.LoginUserDto;
+import org.example.forumstartup.dtos.user.RegisterUserDto;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.security.JwtUtils;
 import org.example.forumstartup.services.UserService;
-import org.example.forumstartup.utils.UserMapper;
+import org.example.forumstartup.mappers.UserMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/public/auth")
 @RequiredArgsConstructor
-public class AuthRestController {
+public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwt;

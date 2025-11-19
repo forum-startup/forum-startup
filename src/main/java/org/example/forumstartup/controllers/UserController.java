@@ -1,11 +1,11 @@
-package org.example.forumstartup.controllers.rest;
+package org.example.forumstartup.controllers;
 
 import lombok.RequiredArgsConstructor;
-import org.example.forumstartup.dtos.AdminSelfUpdateDto;
-import org.example.forumstartup.dtos.UserResponseDtoForAdmin;
-import org.example.forumstartup.dtos.UserSelfUpdateDto;
+import org.example.forumstartup.dtos.user.AdminSelfUpdateDto;
+import org.example.forumstartup.dtos.user.UserResponseDtoForAdmin;
+import org.example.forumstartup.dtos.user.UserSelfUpdateDto;
 import org.example.forumstartup.services.UserService;
-import org.example.forumstartup.utils.UserMapper;
+import org.example.forumstartup.mappers.UserMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class UserRestController {
+public class UserController {
 
     private final UserService userService;
     private final UserMapper mapper;

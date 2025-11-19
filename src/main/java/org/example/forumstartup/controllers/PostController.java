@@ -1,6 +1,9 @@
 package org.example.forumstartup.controllers;
 
 import jakarta.validation.Valid;
+import org.example.forumstartup.dtos.post.PostCreateDto;
+import org.example.forumstartup.dtos.post.PostResponseDto;
+import org.example.forumstartup.dtos.post.PostUpdateDto;
 import org.example.forumstartup.models.*;
 import org.example.forumstartup.services.PostService;
 import org.springframework.http.HttpStatus;
@@ -10,8 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.example.forumstartup.helpers.PostMapper.toDto;
-import static org.example.forumstartup.helpers.PostMapper.toDtoList;
+import static org.example.forumstartup.mappers.PostMapper.toDto;
+import static org.example.forumstartup.mappers.PostMapper.toDtoList;
 
 @RestController
 @RequestMapping("/api/posts")

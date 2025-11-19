@@ -12,8 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static org.example.forumstartup.helpers.ListUtils.trimToLimit;
+import static org.example.forumstartup.utils.ListUtils.trimToLimit;
 
+/*
+    TODO:
+    1. Remove user blocked check * blocked users will not be able to login in the first place (part of Spring Security Setup) *
+    2. Roles can be checked through Spring Security Context with
+ */
 @Service
 public class PostServiceImpl implements PostService {
 

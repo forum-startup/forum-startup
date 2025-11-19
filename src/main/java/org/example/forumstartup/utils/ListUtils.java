@@ -1,4 +1,4 @@
-package org.example.forumstartup.helpers;
+package org.example.forumstartup.utils;
 
 import java.util.ArrayList;
 import java.util.List;

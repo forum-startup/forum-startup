@@ -1,4 +1,4 @@
-package org.example.forumstartup.dtos;
+package org.example.forumstartup.dtos.user;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
@@ -6,7 +6,7 @@ import org.hibernate.validator.constraints.URL;
 
 import static org.example.forumstartup.utils.StringConstants.*;
 
-public record AdminSelfUpdateDto(
+public record UserSelfUpdateDto(
         @Size(min = 4, max = 32, message = FIRST_NAME_SIZE_CONSTRAINT_MESSAGE)
         String firstName,
 
@@ -16,14 +16,9 @@ public record AdminSelfUpdateDto(
         @Email(message = EMAIL_TYPE_CONSTRAINT_MESSAGE)
         String email,
 
-        String username,
+        @URL
+        String profilePhotoUrl,
 
         @Size(min = 6, max = 50)
-        String password,
-
-        @Size(min = 5, max = 20)
-        String phoneNumber,
-
-        @URL
-        String profilePhotoUrl
+        String password
 ) {}

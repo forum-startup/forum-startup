@@ -1,8 +1,8 @@
 package org.example.forumstartup.services;
 
 import lombok.RequiredArgsConstructor;
-import org.example.forumstartup.dtos.AdminSelfUpdateDto;
-import org.example.forumstartup.dtos.UserSelfUpdateDto;
+import org.example.forumstartup.dtos.user.AdminSelfUpdateDto;
+import org.example.forumstartup.dtos.user.UserSelfUpdateDto;
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.DuplicateEntityException;

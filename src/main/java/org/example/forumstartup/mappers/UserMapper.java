@@ -1,9 +1,9 @@
-package org.example.forumstartup.utils;
+package org.example.forumstartup.mappers;
 
-import org.example.forumstartup.dtos.CreateAdminUserDto;
-import org.example.forumstartup.dtos.RegisterUserDto;
-import org.example.forumstartup.dtos.UserResponseDto;
-import org.example.forumstartup.dtos.UserResponseDtoForAdmin;
+import org.example.forumstartup.dtos.user.CreateAdminUserDto;
+import org.example.forumstartup.dtos.user.RegisterUserDto;
+import org.example.forumstartup.dtos.user.UserResponseDto;
+import org.example.forumstartup.dtos.user.UserResponseDtoForAdmin;
 import org.example.forumstartup.models.User;
 import org.springframework.stereotype.Component;
 

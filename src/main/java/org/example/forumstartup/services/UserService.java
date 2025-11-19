@@ -1,7 +1,7 @@
 package org.example.forumstartup.services;
 
-import org.example.forumstartup.dtos.AdminSelfUpdateDto;
-import org.example.forumstartup.dtos.UserSelfUpdateDto;
+import org.example.forumstartup.dtos.user.AdminSelfUpdateDto;
+import org.example.forumstartup.dtos.user.UserSelfUpdateDto;
 import org.example.forumstartup.models.User;
 
 import java.util.List;

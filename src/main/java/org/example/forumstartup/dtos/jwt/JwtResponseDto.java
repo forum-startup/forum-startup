@@ -1,4 +1,4 @@
-package org.example.forumstartup.dtos;
+package org.example.forumstartup.dtos.jwt;
 
 import org.example.forumstartup.models.Role;
 
