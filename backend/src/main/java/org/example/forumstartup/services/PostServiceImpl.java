@@ -1,6 +1,6 @@
 package org.example.forumstartup.services;
 
-import org.example.forumstartup.enums.Role;
+import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
@@ -100,7 +100,7 @@ public class PostServiceImpl implements PostService {
         }
 
         boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        boolean isAdmin = currentUser.getRoles().stream().anyMatch(role -> role.getName().equals(ERole.ROLE_ADMIN));
 
         if (!isOwner && !isAdmin) {
             throw new AuthorizationException("You are not allowed to edit this post");
@@ -120,7 +120,7 @@ public class PostServiceImpl implements PostService {
         }
 
         boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
-        boolean isAdmin = currentUser.getRole() == Role.ROLE_ADMIN;
+        boolean isAdmin = currentUser.getRoles().stream().anyMatch(role -> role.getName().equals(ERole.ROLE_ADMIN));
 
         if (!isOwner && !isAdmin) {
             throw new AuthorizationException("You are not allowed to delete this post");
