@@ -51,13 +51,13 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<Post> mostRecent(int limit) {
-        return postRepository.findTop10ByOrderByCreatedAtDesc();
+        return trimToLimit(postRepository.findTop10ByOrderByCreatedAtDesc(),limit);
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Post> topCommented(int limit) {
-        return postRepository.findTop10MostCommented();
+        return trimToLimit(postRepository.findTop10MostCommented(),limit);
     }
 
     @Override
