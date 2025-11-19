@@ -27,6 +27,14 @@ public class PostController {
 
     // ========= PUBLIC READ ENDPOINTS =========
 
+    /*
+        TODO: this maybe should not be public
+
+        Unauthenticated user should only be able to see:
+
+        1. Top 10 most commented posts
+        2. Top 10 most recently added posts
+     */
     @GetMapping("/{postId}")
     public ResponseEntity<PostResponseDto> getById(@PathVariable long postId) {
         Post post = service.getById(postId);
@@ -65,10 +73,13 @@ public class PostController {
     }
     // ========= PRIVATE WRITE ENDPOINTS (JWT/BASIC AUTH REQUIRED) =========
 
+    /*
+        TODO: Not listed as private from the endpoint, no @PreAuthorize
+     */
     @PostMapping
     public ResponseEntity<PostResponseDto> create(@AuthenticationPrincipal User currentUser, @Valid
     @RequestBody PostCreateDto dto) {
-        Post newPost = service.create(currentUser, dto.getTitle(), dto.getContent());
+        Post newPost = service.create(currentUser, dto.title(), dto.content());
         return ResponseEntity.status(HttpStatus.CREATED).body(toDto(newPost));
 
     }
@@ -78,7 +89,7 @@ public class PostController {
                                                 @AuthenticationPrincipal User currentUser,
                                                 @RequestBody @Valid PostUpdateDto dto
     ) {
-        Post updated = service.edit(postId, currentUser, dto.getTitle(), dto.getContent());
+        Post updated = service.edit(postId, currentUser, dto.title(), dto.content());
         return ResponseEntity.ok(toDto(updated));
     }
 
