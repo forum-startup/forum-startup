@@ -1,4 +1,4 @@
-package org.example.forumstartup.dtos.user;
+package org.example.forumstartup.dtos.auth;
 
 public record LoginUserDto(
         String username,
