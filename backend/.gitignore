@@ -1,6 +1,10 @@
-/build/
-/.gradle
-/.idea
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Gradle
+.gradle/
+build/
 
 # .properties fikles
 *.properties
@@ -29,4 +33,3 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 replay_pid*
-/build

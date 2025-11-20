@@ -1,5 +1,6 @@
 package org.example.forumstartup.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.user.AdminSelfUpdateDto;
 import org.example.forumstartup.dtos.user.UserResponseDtoForAdmin;
@@ -24,7 +25,7 @@ public class UserController {
 
     @PutMapping("/private/users/me")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<?> updateUserSelf(@RequestBody UserSelfUpdateDto dto) {
+    public ResponseEntity<?> updateUserSelf(@RequestBody @Valid UserSelfUpdateDto dto) {
         return ResponseEntity.ok(mapper.userToResponseDto(userService.update(dto)));
     }
 
@@ -81,7 +82,7 @@ public class UserController {
 
     @PutMapping("/admin/update/me")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> updateAdminSelf(@RequestBody AdminSelfUpdateDto dto) {
+    public ResponseEntity<?> updateAdminSelf(@RequestBody @Valid AdminSelfUpdateDto dto) {
         return ResponseEntity.ok(mapper.userToResponseDto(userService.update(dto)));
     }
 
