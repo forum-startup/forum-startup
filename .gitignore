@@ -47,9 +47,3 @@ lerna-debug.log*
 *.njsproj
 *.sln
 *.sw?
-
-# =====================================
-# Specific project folders (optional)
-# =====================================
-frontend/
-backend/build/
