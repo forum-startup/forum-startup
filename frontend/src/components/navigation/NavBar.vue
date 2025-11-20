@@ -14,7 +14,7 @@ function toggleMenu() {
 </script>
 
 <template>
-  <div class="bg-white">
+  <div class="bg-gray-800">
 
     <header class="bg-gray-800">
       <nav class="mx-auto flex max-w-7xl items-center justify-between gap-x-6 p-6 lg:px-8" aria-label="Global">
