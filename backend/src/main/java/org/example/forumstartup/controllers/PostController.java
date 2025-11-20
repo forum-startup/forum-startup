@@ -19,6 +19,7 @@ import static org.example.forumstartup.mappers.PostMapper.toDtoList;
 
 @RestController
 @RequestMapping("/api")
+@CrossOrigin(origins = "http://localhost:5173")
 public class PostController {
     private final PostService service;
 
