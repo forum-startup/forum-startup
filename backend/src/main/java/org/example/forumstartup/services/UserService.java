@@ -34,4 +34,5 @@ public interface UserService {
 
     void promoteToAdmin(Long id);
 
+    User getAuthenticatedUser();
 }

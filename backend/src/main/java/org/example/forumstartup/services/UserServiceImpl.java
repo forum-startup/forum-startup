@@ -255,7 +255,7 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private User getAuthenticatedUser() {
+    public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         String username = authentication.getName(); // Extracted from JWT automatically
