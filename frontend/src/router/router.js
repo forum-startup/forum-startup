@@ -13,6 +13,18 @@ const routes = [
     },
 
     {
+        path: "/login",
+        name: "login",
+        component: Login
+    },
+
+    {
+        path: "/register",
+        name: "register",
+        component: Register
+    },
+
+    {
         path: "/profile",
         name: "profile",
         component: Profile,
@@ -24,18 +36,6 @@ const routes = [
     //     name: "admin",
     //     component:
     // }
-
-    {
-        path: "/login",
-        name: "login",
-        component: Login
-    },
-
-    {
-        path: "/register",
-        name: "register",
-        component: Register
-    },
 ]
 
 const router = createRouter({

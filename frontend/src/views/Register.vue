@@ -15,7 +15,7 @@ const {
     <div class="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
 
       <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">Sign in to your account</h2>
+        <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">Become part of our community</h2>
       </div>
 
       <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
@@ -54,7 +54,16 @@ const {
             Register
           </button>
 
-          <p v-if="errors" class="text-red-500 text-sm mt-2 text-center">{{ errors.value }}</p>
+          <!-- Fix error display -->
+          <div v-if="Object.keys(errors).length > 0" class="space-y-2">
+            <p v-for="(message, field) in errors" :key="field" class="text-red-400 text-sm">
+              {{ message }}
+            </p>
+          </div>
+
+          <p v-if="serverError" class="text-red-500 text-sm mt-4 text-center font-medium">
+            {{ serverError }}
+          </p>
         </form>
       </div>
     </div>

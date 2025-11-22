@@ -5,17 +5,17 @@ import router from "../router/router.js";
 import { currentUser } from "../utils/store.js";
 import { fetchCurrentUser } from "../utils/auth.js";
 
-const username = ref("")
-const password = ref("")
+const form = ref({
+  username: '',
+  password: ''
+})
+
 const error = ref("")
 
 async function login() {
   try {
     error.value = ""
-    await api.post("public/auth/login", {
-      username: username.value,
-      password: password.value
-    })
+    await api.post("public/auth/login",  form.value )
 
     // set current user
     currentUser.value = await fetchCurrentUser()
@@ -39,13 +39,13 @@ async function login() {
         <form class="space-y-6" @submit.prevent="login">
           <div>
             <label for="username" class="block text-sm font-medium leading-6 text-white">Username</label>
-            <input id="username" type="text" v-model="username" required
+            <input id="username" type="text" v-model="form.username" required
                    class="block w-full rounded-md border-0 py-1.5 text-white shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
           </div>
 
           <div>
             <label for="password" class="block text-sm font-medium leading-6 text-white">Password</label>
-            <input id="password" type="password" v-model="password" required
+            <input id="password" type="password" v-model="form.password" required
                    class="block w-full rounded-md border-0 py-1.5 text-white shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
           </div>
 

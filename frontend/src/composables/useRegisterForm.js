@@ -9,7 +9,6 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export function useRegisterForm() {
     const router = useRouter()
 
-    // Form fields
     const form = ref({
         firstName: '',
         lastName: '',
@@ -56,13 +55,7 @@ export function useRegisterForm() {
 
         try {
             await api.post('/public/auth/register', form.value)
-
-            // Auto-login after registration (optional but great UX)
-            // Your backend should set JWT cookie on successful register
-            currentUser.value = await fetchCurrentUser()
-
-            // Redirect to home (or onboarding)
-            await router.push('/')
+            await router.push('/login')
         } catch (err) {
             // Handle backend validation errors properly
             if (err.response?.status === 400 && err.response?.data?.errors) {

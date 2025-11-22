@@ -93,7 +93,7 @@ function toggleDropdown() {
                   class="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-gray-700 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none"
               >
                 <!-- User Info -->
-                <div class="px-4 py-3 border-b border-gray-100">
+                <div class="px-4 py-3 border-b border-gray-500">
                   <p class="text-sm text-white">Signed in as</p>
                   <p class="truncate text-sm text-white font-semibold">
                     @{{ currentUser.username }}
@@ -112,7 +112,7 @@ function toggleDropdown() {
                 </div>
 
                 <!-- Logout -->
-                <div class="py-1 border-t border-gray-100">
+                <div class="py-1 border-t border-gray-500">
                   <button
                       @click="handleLogout"
                       class="w-full text-left block px-4 py-2 text-sm font-semibold text-red-500 hover:bg-gray-600"
