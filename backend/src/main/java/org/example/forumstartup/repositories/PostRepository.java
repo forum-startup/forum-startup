@@ -15,19 +15,25 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findTop10ByOrderByCreatedAtDesc();
 
     @Query("""
-           SELECT p FROM Post p
-           WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :word, '%'))
-              OR LOWER(p.content) LIKE LOWER(CONCAT('%', :word, '%'))
-           ORDER BY p.createdAt DESC
-           """)
+            SELECT p FROM Post p
+            WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :word, '%'))
+               OR LOWER(p.content) LIKE LOWER(CONCAT('%', :word, '%'))
+            ORDER BY p.createdAt DESC
+            """)
     List<Post> search(@Param("word") String word);
 
 
     @Query("""
-           SELECT p FROM Post p
-           LEFT JOIN p.comments c
-           GROUP BY p
-           ORDER BY COUNT(c.id) DESC, p.createdAt DESC
-           """)
+            SELECT p FROM Post p
+            LEFT JOIN p.comments c
+            GROUP BY p
+            ORDER BY COUNT(c.id) DESC, p.createdAt DESC
+            """)
     List<Post> findTop10MostCommented();
+
+    @Query("""
+            SELECT p FROM Post p JOIN p.tags t WHERE t.name= :tagName
+            ORDER BY p.createdAt DESC 
+                        """)
+    List<Post> findPostsByTagName(@Param("tagName") String name);
 }
