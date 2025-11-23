@@ -2,13 +2,14 @@ package org.example.forumstartup.mappers;
 
 import org.example.forumstartup.dtos.comment.CommentResponseDto;
 import org.example.forumstartup.models.Comment;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
+@Component
 public class CommentMapper {
 
-    public static CommentResponseDto toDto(Comment c) {
+    public CommentResponseDto toDto(Comment c) {
         return new CommentResponseDto(
                 c.getId(),
                 c.getPost().getId(),
@@ -22,7 +23,9 @@ public class CommentMapper {
         );
     }
 
-    public static List<CommentResponseDto> toDtoList(List<Comment> comments) {
-        return comments.stream().map(CommentMapper::toDto).collect(Collectors.toList());
+    public List<CommentResponseDto> toDtoList(List<Comment> comments) {
+        return comments.stream()
+                .map(this::toDto)
+                .toList();
     }
 }
