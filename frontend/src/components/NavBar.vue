@@ -34,10 +34,12 @@ function toggleDropdown() {
 
       <!-- Desktop Links -->
       <div class="hidden lg:flex lg:gap-x-12">
-        <a href="#" class="text-sm font-semibold leading-6 text-white">Product</a>
-        <a href="#" class="text-sm font-semibold leading-6 text-white">Features</a>
-        <a href="#" class="text-sm font-semibold leading-6 text-white">Marketplace</a>
-        <a href="#" class="text-sm font-semibold leading-6 text-white">Company</a>
+        <router-link
+            to="/post"
+            class="hidden lg:block text-sm font-semibold leading-6 text-white"
+        >
+          Share your story
+        </router-link>
       </div>
 
       <!-- Auth Section -->
@@ -107,7 +109,17 @@ function toggleDropdown() {
                       @click="isOpen = false"
                       class="block px-4 py-2 text-sm text-white hover:bg-gray-600"
                   >
-                    Account Settings
+                    My Account
+                  </router-link>
+                </div>
+
+                <div class="py-1">
+                  <router-link
+                      to="/posts"
+                      @click="isOpen = false"
+                      class="block px-4 py-2 text-sm text-white hover:bg-gray-600"
+                  >
+                    My Posts
                   </router-link>
                 </div>
 

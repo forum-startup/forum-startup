@@ -4,6 +4,7 @@ import Profile from "../views/Profile.vue";
 import Login from "../views/Login.vue";
 import {isLoggedIn, hasRole} from "../utils/auth";
 import Register from "../views/Register.vue";
+import CreatePost from "../views/CreatePost.vue";
 
 const routes = [
     {
@@ -30,6 +31,13 @@ const routes = [
         component: Profile,
         meta: {requiresAuth: true}
     },
+
+    {
+        path: "/post",
+        name: "post",
+        component: CreatePost,
+        meta: {requiresAuth: true}
+    }
 
     // {
     //     path: "/admin",
