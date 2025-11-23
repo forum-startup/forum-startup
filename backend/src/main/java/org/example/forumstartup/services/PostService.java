@@ -6,12 +6,14 @@ import org.example.forumstartup.models.User;
 import java.util.List;
 
 public interface PostService {
-    Post create(User currentUser, String title, String content);
+    void create(Post post);
 
     Post edit(Long postId, User currentUser, String titleToUpdate, String contentToUpdate);
 
     void delete(Long postId, User currentUser);
+
     void adminDelete(Long postId, User adminUser);
+
     void like(Long postId, User currentUser);
 
     void unlike(Long postId, User currentUser);

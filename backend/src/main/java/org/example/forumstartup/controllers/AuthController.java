@@ -9,6 +9,7 @@ import org.example.forumstartup.models.User;
 import org.example.forumstartup.security.JwtUtils;
 import org.example.forumstartup.services.UserService;
 import org.example.forumstartup.mappers.UserMapper;
+import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,6 +33,7 @@ public class AuthController {
     private final JwtUtils jwt;
     private final UserService userService;
     private final UserMapper mapper;
+    private final AuthenticationUtils authenticationUtils;
 
     /*
             Passes username/password to UserDetailsService which returns a UserDetails object
@@ -106,11 +108,13 @@ public class AuthController {
     @GetMapping("/private/auth/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> me() {
-        User actingUser = userService.getAuthenticatedUser();
+        User actingUser = authenticationUtils.getAuthenticatedUser();
+
         JwtResponseDto response = new JwtResponseDto(
                 actingUser.getUsername(),
                 actingUser.getRoles()
         );
+
         return ResponseEntity.ok(response);
     }
 }

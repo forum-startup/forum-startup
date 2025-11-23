@@ -11,6 +11,7 @@ import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.RoleRepository;
 import org.example.forumstartup.repositories.UserRepository;
+import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationUtils authenticationUtils;
 
     /*
         Not sure what to do with this method (will we be using it anywhere?)
@@ -102,7 +104,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User update(UserSelfUpdateDto dto) {
-        User actingUser = getAuthenticatedUser();
+        User actingUser = authenticationUtils.getAuthenticatedUser();
 
         updateCommonFields(
                 actingUser,
@@ -122,7 +124,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User update(AdminSelfUpdateDto dto) {
-        User actingUser = getAuthenticatedUser();
+        User actingUser = authenticationUtils.getAuthenticatedUser();
 
         updateCommonFields(
                 actingUser,
@@ -148,7 +150,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void delete(Long id) {
-        User actingUser = getAuthenticatedUser();
+        User actingUser = authenticationUtils.getAuthenticatedUser();
 
         if (!isAdmin(actingUser) && !actingUser.getId().equals(id)) {
             throw new AuthorizationException("You are not allowed to delete this account.");
@@ -172,7 +174,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void deleteSelf() {
-        User actingUser = getAuthenticatedUser();
+        User actingUser = authenticationUtils.getAuthenticatedUser();
         userRepository.delete(actingUser);
     }
 
@@ -206,7 +208,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public void promoteToAdmin(Long id) {
-        User actingAdmin = getAuthenticatedUser();
+        User actingAdmin = authenticationUtils.getAuthenticatedUser();
 
         if (!isAdmin(actingAdmin)) {
             throw new AuthorizationException("Only admins can promote users");
@@ -253,15 +255,6 @@ public class UserServiceImpl implements UserService {
                 && userRepository.existsByEmail(email)) {
             throw new DuplicateEntityException(EMAIL_ALREADY_EXISTS);
         }
-    }
-
-    public User getAuthenticatedUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        String username = authentication.getName(); // Extracted from JWT automatically
-
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new EntityNotFoundException("User", "username", username));
     }
 
 }

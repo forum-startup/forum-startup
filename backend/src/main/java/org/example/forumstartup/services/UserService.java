@@ -33,6 +33,4 @@ public interface UserService {
     void unblock(Long id);
 
     void promoteToAdmin(Long id);
-
-    User getAuthenticatedUser();
 }

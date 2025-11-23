@@ -1,11 +1,13 @@
 package org.example.forumstartup.services;
 
+import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
+import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,13 +17,11 @@ import java.util.List;
 import static org.example.forumstartup.utils.ListUtils.trimToLimit;
 
 @Service
+@RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-
-    public PostServiceImpl(PostRepository postRepository) {
-        this.postRepository = postRepository;
-    }
+    private final AuthenticationUtils authenticationUtils;
 
     private boolean isAdmin(User user) {
         return user.getRoles().stream()
@@ -81,16 +81,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public Post create(User currentUser, String title, String content) {
+    public void create(Post post) {
+        User actingUser = authenticationUtils.getAuthenticatedUser();
 
-        ensureNotBlocked(currentUser);
-        Post post = new Post();
-        post.setCreator(currentUser);
-        post.setTitle(title != null ? title.trim() : null);
-        post.setContent(content != null ? content.trim() : null);
+        post.setCreator(actingUser);
         post.setLikesCount(0);
 
-        return postRepository.save(post);
+        postRepository.save(post);
     }
 
     @Override
