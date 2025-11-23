@@ -1,4 +1,15 @@
 package org.example.forumstartup.dtos.comment;
 
-public record CommentResponseDto() {
-}
+import java.time.LocalDateTime;
+
+public record CommentResponseDto(
+        Long id,
+        Long postId,
+        Long creatorId,
+        String creatorUsername,
+        String content,
+        Long parentId,
+        Integer likesCount,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt
+) { }
