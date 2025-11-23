@@ -17,4 +17,6 @@ public class StringConstants {
     public static final String DUPLICATE_USER_INFORMATION_EXCEPTION_MESSAGE = "User with that username and/or email already exists.";
     public static final String USERNAME_ALREADY_EXISTS = "Username already exists";
     public static final String EMAIL_ALREADY_EXISTS = "An account with this email address is already registered";
+
+    public static final String PASSWORD_LENGTH_ERROR_MESSAGE = "Password must be between 6 and 50 characters.";
 }

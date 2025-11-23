@@ -85,4 +85,8 @@ public class Post {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public Post(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
 }

@@ -1,6 +1,7 @@
 package org.example.forumstartup.dtos.user;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.hibernate.validator.constraints.URL;
 
@@ -14,11 +15,12 @@ public record UserSelfUpdateDto(
         String lastName,
 
         @Email(message = EMAIL_TYPE_CONSTRAINT_MESSAGE)
+        @NotBlank
         String email,
 
         @URL
         String profilePhotoUrl,
 
-        @Size(min = 6, max = 50)
+        @Size(min = 6, max = 50, message = PASSWORD_LENGTH_ERROR_MESSAGE)
         String password
 ) {}
