@@ -1,7 +1,10 @@
 <script setup>
-import Home from "./views/Home.vue";
+import NavBar from "./components/NavBar.vue";
+import Footer from "./components/Footer.vue";
 </script>
 
 <template>
-  <Home msg="Home" />
+  <NavBar />
+  <router-view />
+  <Footer />
 </template>

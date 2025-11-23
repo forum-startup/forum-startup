@@ -18,6 +18,8 @@ public class StringConstants {
     public static final String USERNAME_ALREADY_EXISTS = "Username already exists";
     public static final String EMAIL_ALREADY_EXISTS = "An account with this email address is already registered";
 
+    public static final String PASSWORD_LENGTH_ERROR_MESSAGE = "Password must be between 6 and 50 characters.";
+
     public static final String BLOCKED_USER_EXCEPTION_MESSAGE = "Blocked users cannot perform this action.";
     public static final String WRONG_POST_REPLY_EXCEPTION_MESSAGE = "Reply must be under the same post as the parent comment.";
     public static final String OWN_COMMENT_LIKE_EXCEPTION_MESSAGE = "You cannot like your own comment.";

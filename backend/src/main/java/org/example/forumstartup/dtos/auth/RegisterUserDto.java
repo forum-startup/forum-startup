@@ -21,6 +21,6 @@ public record RegisterUserDto(
         String username,
 
         @NotBlank
-        @Size(min = 6, max = 50)
+        @Size(min = 6, max = 50, message = PASSWORD_LENGTH_ERROR_MESSAGE)
         String password
 ) {}

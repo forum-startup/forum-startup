@@ -2,6 +2,7 @@ package org.example.forumstartup.mappers;
 
 import org.example.forumstartup.dtos.user.CreateAdminUserDto;
 import org.example.forumstartup.dtos.auth.RegisterUserDto;
+import org.example.forumstartup.dtos.user.ProfileResponseDto;
 import org.example.forumstartup.dtos.user.UserResponseDto;
 import org.example.forumstartup.dtos.user.UserResponseDtoForAdmin;
 import org.example.forumstartup.models.User;
@@ -51,6 +52,17 @@ public class UserMapper {
         return new UserResponseDto(
                 user.getUsername(),
                 user.getRoles()
+        );
+    }
+
+    public ProfileResponseDto userToProfileResponseDto(User user) {
+        return new ProfileResponseDto(
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getUsername(),
+                user.getProfilePhotoUrl(),
+                user.getCreatedAt()
         );
     }
 }

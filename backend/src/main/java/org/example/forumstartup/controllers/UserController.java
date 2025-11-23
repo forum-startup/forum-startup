@@ -3,10 +3,14 @@ package org.example.forumstartup.controllers;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.user.AdminSelfUpdateDto;
+import org.example.forumstartup.dtos.user.ProfileResponseDto;
 import org.example.forumstartup.dtos.user.UserResponseDtoForAdmin;
 import org.example.forumstartup.dtos.user.UserSelfUpdateDto;
+import org.example.forumstartup.exceptions.EntityNotFoundException;
+import org.example.forumstartup.models.User;
 import org.example.forumstartup.services.UserService;
 import org.example.forumstartup.mappers.UserMapper;
+import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -16,13 +20,28 @@ import java.util.List;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(
+        origins = "http://localhost:5173",
+        allowCredentials = "true"
+)
 public class UserController {
 
     private final UserService userService;
     private final UserMapper mapper;
+    private final AuthenticationUtils authenticationUtils;
 
     /* ------------------------- User part ------------------------- */
+
+    @GetMapping("/private/users/profile")
+    public ResponseEntity<?> getProfile() {
+        try {
+            User actingUser = authenticationUtils.getAuthenticatedUser();
+            ProfileResponseDto response = mapper.userToProfileResponseDto(actingUser);
+            return ResponseEntity.ok(response);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(401).body("Invalid token");
+        }
+    }
 
     @PutMapping("/private/users/me")
     @PreAuthorize("hasRole('USER')")

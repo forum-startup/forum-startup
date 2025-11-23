@@ -53,12 +53,6 @@ public class SecurityConfig {
         return authProvider;
     }
 
-    /*
-        REST API Security (stateless)
-
-        TODO: add @CrossOrigin(origins = "http://localhost:5173") on every controller
-
-     */
     @Bean
     public SecurityFilterChain apiFilterChain(
             AuthenticationProvider authenticationProvider,
