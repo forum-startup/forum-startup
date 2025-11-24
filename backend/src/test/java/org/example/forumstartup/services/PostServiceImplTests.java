@@ -1,5 +1,7 @@
 package org.example.forumstartup.services;
 
+
+import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.repositories.PostRepository;
 import org.example.forumstartup.repositories.TagRepository;
@@ -13,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -43,15 +46,25 @@ public class PostServiceImplTests {
     void getById_returnPost_whenPostExists() {
 
         //Arrange
-        Post post = new Post();
-        post.setId(1L);
-        when(postRepository.findById(1L)).thenReturn(Optional.of(post));
-
+        init();
+        when(postRepository.findById(1L)).thenReturn(Optional.of(basePost));
         //Act
         Post result = postService.getById(1L);
 
         //Assert
         assertEquals(1L, result.getId());
+        verify(postRepository).findById(1L);
+    }
+
+    @Test
+    void getById_throwsException_whenPostDoesNotExist() {
+        // Arrange
+        when(postRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act + Assert
+        assertThrows(EntityNotFoundException.class,
+                () -> postService.getById(1L));
+
         verify(postRepository).findById(1L);
     }
 }

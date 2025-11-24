@@ -39,10 +39,10 @@ public class PostServiceImpl implements PostService {
     }
 
     /*
-     * Service-layer validation for blocked users.
-     * Needed even with security config because:
-     * - JWT is stateless → blocked users may still have a valid token.
-     * - Business rules should always be enforced in the service layer.
+     * Service-layer block validation.
+     * Spring Security protects the web layer, but it does not know the business rules:
+     * who owns posts, who can edit, like, comment, or manage tags,
+     * therefore the service layer must still enforce these rules independently imo.
      */
     private void ensureNotBlocked(User user) {
         if (user.isBlocked()) {
