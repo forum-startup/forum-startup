@@ -4,6 +4,7 @@ import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
+import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
@@ -29,8 +30,12 @@ public class PostServiceImpl implements PostService {
 
     /* Checks if a user has a role as an Admi */
     private boolean isAdmin(User user) {
-        return user.getRoles().stream()
-                .anyMatch(r -> r.getName().equals(ERole.ROLE_ADMIN));
+        for (Role role : user.getRoles()){
+            if(role.getName().equals(ERole.ROLE_ADMIN)){
+                return true;
+            }
+        }
+        return false;
     }
 
     /*
@@ -139,6 +144,7 @@ public class PostServiceImpl implements PostService {
         ensureUserCanModifyPost(currentUser, post);
         postRepository.delete(post);
     }
+
     /*
      * Admin-only delete. Controller enforces @PreAuthorize,
      * but service still checks for safety.
