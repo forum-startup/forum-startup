@@ -38,6 +38,12 @@ public class CommentServiceImpl implements CommentService {
             ensureSamePost(post, parent);
         }
 
+        /*
+            TODO
+            create a DTO to Comment mapper and use it inside the controller
+            so a Comment entity is passed to the service
+         */
+
         Comment comment = buildComment(post, user, parent, dto.content());
         return commentRepository.save(comment);
     }
@@ -92,6 +98,13 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.save(comment);
     }
 
+    /*
+        TODO
+        Unlike does not check if you have already liked the comment,
+        since you cannot unlike a comment you haven't liked
+
+        (frontend will not allow it anyway, but I think a check in the service is necessary)
+     */
     @Override
     @Transactional
     public Comment unlikeComment(Long commentId, User user) {
@@ -146,6 +159,10 @@ public class CommentServiceImpl implements CommentService {
         }
     }
 
+    /*
+        TODO
+        This should be the mapper
+     */
     private Comment buildComment(Post post, User creator, Comment parent, String content) {
         Comment c = new Comment();
         c.setPost(post);
