@@ -28,7 +28,16 @@ public class PostServiceImpl implements PostService {
         this.tagRepository = tagRepository;
     }
 
-    /* Checks if a user has a role as an Admi */
+    /*
+        TODO
+        You can move helper methods at the very bottom, just so the important
+        part of the service can be seen first.
+
+        Also, it is considered good practice for methods that use other methods
+        to be below (parent-child like structure)
+     */
+
+    /* Checks if a user has a role as an Admin */
     private boolean isAdmin(User user) {
         for (Role role : user.getRoles()){
             if(role.getName().equals(ERole.ROLE_ADMIN)){
