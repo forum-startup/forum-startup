@@ -19,4 +19,11 @@ public class StringConstants {
     public static final String EMAIL_ALREADY_EXISTS = "An account with this email address is already registered";
 
     public static final String PASSWORD_LENGTH_ERROR_MESSAGE = "Password must be between 6 and 50 characters.";
+
+    public static final String YOU_CANNOT_BLOCK_YOURSELF = "You cannot block yourself";
+    public static final String YOU_CANNOT_UNBLOCK_YOURSELF = "You cannot unblock yourself since you were not allowed to block yourself in the first place";
+    public static final String YOU_CANNOT_PROMOTE_YOURSELF = "You cannot promote yourself since you are already an admin";
+    public static final String ONLY_ADMINS_CAN_PROMOTE_USERS = "Only admins can promote users";
+
+    public static final String ADMIN_ROLE_NOT_FOUND = "Admin role not found";
 }

@@ -58,6 +58,14 @@ public class UserController {
 
     /* ------------------------- Admin part ------------------------- */
 
+    @GetMapping("/admin/users/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserResponseDtoForAdmin> getUserById(@PathVariable Long id) {
+        UserResponseDtoForAdmin dto = mapper.userToResponseDtoForAdmin(userService.getUserById(id));
+
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping("/admin/users/username/{username}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDtoForAdmin> getUserByUsername(@PathVariable String username) {

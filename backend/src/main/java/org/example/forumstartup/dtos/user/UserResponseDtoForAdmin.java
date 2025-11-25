@@ -2,6 +2,7 @@ package org.example.forumstartup.dtos.user;
 
 import org.example.forumstartup.models.Role;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 public record UserResponseDtoForAdmin(
@@ -11,5 +12,6 @@ public record UserResponseDtoForAdmin(
         String email,
         String username,
         Set<Role> roles,
+        LocalDateTime createdAt,
         boolean isBlocked
 ) {}

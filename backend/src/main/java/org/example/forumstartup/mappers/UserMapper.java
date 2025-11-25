@@ -44,6 +44,7 @@ public class UserMapper {
                 user.getEmail(),
                 user.getUsername(),
                 user.getRoles(),
+                user.getCreatedAt(),
                 user.isBlocked()
         );
     }

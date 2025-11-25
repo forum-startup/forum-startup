@@ -7,13 +7,12 @@ import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.DuplicateEntityException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
+import org.example.forumstartup.exceptions.InvalidOperationException;
 import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.RoleRepository;
 import org.example.forumstartup.repositories.UserRepository;
 import org.example.forumstartup.utils.AuthenticationUtils;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -185,6 +184,11 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void block(Long id) {
         User user = getUserById(id);
+        User actingAdmin = authenticationUtils.getAuthenticatedUser();
+
+        if (id.equals(actingAdmin.getId())) {
+            throw new InvalidOperationException(YOU_CANNOT_BLOCK_YOURSELF);
+        }
         user.setBlocked(true);
 
         userRepository.saveAndFlush(user);
@@ -197,6 +201,13 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void unblock(Long id) {
         User user = getUserById(id);
+
+        User actingAdmin = authenticationUtils.getAuthenticatedUser();
+
+        if (id.equals(actingAdmin.getId())) {
+            throw new InvalidOperationException(YOU_CANNOT_UNBLOCK_YOURSELF);
+        }
+
         user.setBlocked(false);
 
         userRepository.saveAndFlush(user);
@@ -211,13 +222,17 @@ public class UserServiceImpl implements UserService {
         User actingAdmin = authenticationUtils.getAuthenticatedUser();
 
         if (!isAdmin(actingAdmin)) {
-            throw new AuthorizationException("Only admins can promote users");
+            throw new AuthorizationException(ONLY_ADMINS_CAN_PROMOTE_USERS);
+        }
+
+        if (id.equals(actingAdmin.getId())) {
+            throw new InvalidOperationException(YOU_CANNOT_PROMOTE_YOURSELF);
         }
 
         User targetUser = getUserById(id);
 
         Role adminRole = roleRepository.findByName(ERole.ROLE_ADMIN)
-                .orElseThrow(() -> new EntityNotFoundException("Admin role not found"));
+                .orElseThrow(() -> new EntityNotFoundException(ADMIN_ROLE_NOT_FOUND));
         targetUser.getRoles().add(adminRole);
 
         userRepository.saveAndFlush(targetUser);
