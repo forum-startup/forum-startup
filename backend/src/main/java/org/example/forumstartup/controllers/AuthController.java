@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.jwt.JwtResponseDto;
 import org.example.forumstartup.dtos.auth.LoginUserDto;
 import org.example.forumstartup.dtos.auth.RegisterUserDto;
+import org.example.forumstartup.dtos.user.UserResponseDto;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.security.JwtUtils;
 import org.example.forumstartup.services.UserService;
@@ -110,10 +111,7 @@ public class AuthController {
     public ResponseEntity<?> me() {
         User actingUser = authenticationUtils.getAuthenticatedUser();
 
-        JwtResponseDto response = new JwtResponseDto(
-                actingUser.getUsername(),
-                actingUser.getRoles()
-        );
+        UserResponseDto response = mapper.userToResponseDto(actingUser);
 
         return ResponseEntity.ok(response);
     }

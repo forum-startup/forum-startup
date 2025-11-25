@@ -131,7 +131,7 @@ async function handleLogout() {
                   My Account
                 </router-link>
                 <router-link
-                    to="/posts"
+                    to="/my-posts"
                     @click="isProfileOpen = false"
                     class="block px-5 py-3 text-sm text-gray-300 hover:bg-gray-700/70 hover:text-white transition"
                     role="menuitem"

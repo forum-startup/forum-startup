@@ -51,6 +51,7 @@ public class UserMapper {
 
     public UserResponseDto userToResponseDto(User user) {
         return new UserResponseDto(
+                user.getId(),
                 user.getUsername(),
                 user.getRoles()
         );

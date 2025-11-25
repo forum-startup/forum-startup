@@ -1,10 +1,7 @@
-import {useRouter} from "vue-router";
 import {ref} from "vue";
 import api from "../utils/axios.js";
 
 export function useUsers() {
-    const router = useRouter()
-
     const users = ref([])
     const isLoading = ref(false)
     const isBlocking = ref(new Set()) // tracks which users are being blocked/unblocked

@@ -4,7 +4,6 @@ import {useUsers} from '../composables/useUsers.js'
 import {fetchUserById, hasRoleReactive} from "../utils/auth.js";
 
 const {users, isLoading, isBlocking, error, fetchUsers, blockUser, unblockUser, promoteToAdmin} = useUsers()
-// const isAdmin = computed(() => hasRoleReactive('ROLE_ADMIN'))
 
 onMounted(fetchUsers)
 </script>

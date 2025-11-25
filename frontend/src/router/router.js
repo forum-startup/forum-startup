@@ -6,6 +6,7 @@ import {isLoggedIn, hasRole} from "../utils/auth";
 import Register from "../views/Register.vue";
 import CreatePost from "../views/CreatePost.vue";
 import Users from "../views/Users.vue";
+import MyPosts from "../views/MyPosts.vue";
 
 const routes = [
     {
@@ -45,7 +46,14 @@ const routes = [
         name: "/users",
         component: Users,
         meta: {requiresAuth: true}
-    }
+    },
+
+    {
+        path: "/my-posts",
+        name: "/my-posts",
+        component: MyPosts,
+        meta: {requiresAuth: true}
+    },
     // {
     //     path: "/admin",
     //     name: "admin",
