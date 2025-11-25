@@ -1,66 +1,84 @@
 <script setup>
-import {watch} from 'vue'
-import {useCreatePost} from '../composables/useCreatePost.js'
+import { useCreatePost } from '../composables/useCreatePost.js'
 
-const {form, isLoading, error, createPost} = useCreatePost()
-
-const handleSubmit = () => {
-  createPost()
-}
-
-watch(error, (msg) => {
-  if (msg) {
-    alert(msg)
-  }
-})
+const {
+  form,
+  errors,
+  serverError,
+  isLoading,
+  createPost
+} = useCreatePost()
 </script>
 
 <template>
-  <div class="h-screen bg-gray-900 p-8">
-    <div class="mx-auto w-full max-w-xl">
-      <form @submit.prevent="handleSubmit" class="relative">
-        <div
-            class="overflow-hidden rounded-lg border border-gray-700 shadow-sm focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-colors">
+  <div class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-2xl">
+
+      <div class="text-center mb-10">
+        <h1 class="text-4xl font-bold tracking-tight text-white">Share your story</h1>
+        <p class="mt-3 text-lg text-gray-400">Write something worth reading</p>
+      </div>
+
+      <div class="rounded-2xl bg-gray-800/50 backdrop-blur-sm ring-1 ring-white/10 shadow-2xl overflow-hidden">
+        <form @submit.prevent="createPost" class="p-8 space-y-10">
 
           <!-- Title -->
-          <input
-              v-model="form.title"
-              type="text"
-              id="title"
-              class="block w-full border-0 bg-transparent pt-6 pb-3 px-4 text-2xl font-semibold text-white placeholder:text-gray-500 focus:ring-0 outline-none"
-              placeholder="Title"
-              required
-          >
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <label for="title" class="text-sm font-medium text-gray-300">Title</label>
+            </div>
+            <input
+                v-model="form.title"
+                type="text"
+                id="title"
+                placeholder="Your title..."
+                class="w-full rounded-xl border-0 bg-white/10 px-5 py-4 text-xl font-medium text-white
+                     placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none
+                     ring-1 ring-inset transition"
+                :class="{ 'ring-red-500/50 focus:ring-red-500': errors.title }"
+            />
+            <p v-if="errors.title" class="mt-2 text-sm text-red-400 font-medium">{{ errors.title }}</p>
+          </div>
 
           <!-- Content -->
-          <textarea
-              v-model="form.content"
-              rows="3"
-              id="content"
-              class="block w-full resize-none border-0 bg-transparent px-4 pb-6 text-gray-300 placeholder:text-gray-500 focus:ring-0 outline-none sm:text-lg"
-              placeholder="Write a description..."
-          ></textarea>
-
-          <!-- Spacer for toolbar -->
-          <div aria-hidden="true" class="py-2">
-            <div class="h-9"></div>
+          <div>
+            <div class="flex justify-between items-center mb-3">
+              <label for="content" class="text-sm font-medium text-gray-300">Your story</label>
+            </div>
+            <textarea
+                v-model="form.content"
+                id="content"
+                rows="12"
+                placeholder="Start writing your post..."
+                class="w-full rounded-xl border-0 bg-white/10 px-5 py-4 text-lg text-gray-200
+                     placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none
+                     resize-none transition leading-relaxed ring-1 ring-inset"
+                :class="{ 'ring-red-500/50 focus:ring-red-500': errors.content }"
+            ></textarea>
+            <p v-if="errors.content" class="mt-2 text-sm text-red-400 font-medium">{{ errors.content }}</p>
           </div>
-        </div>
 
-        <!-- Bottom Toolbar -->
-        <div class="absolute inset-x-0 bottom-0">
-          <div class="flex items-center justify-between border-t border-gray-700 px-3 py-3">
-            <!-- Submit Button -->
+          <!-- Submit -->
+          <div class="flex flex-col items-start gap-4 pt-8 border-t border-white/10">
             <button
                 type="submit"
-                :disabled="isLoading || !form.title.trim() || !form.content.trim()"
-                class="rounded-md bg-indigo-600 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                :disabled="isLoading || Object.keys(errors).length > 0"
+                class="rounded-xl bg-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-lg
+                     hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
-              {{ isLoading ? 'Creating...' : 'Create Post' }}
+              {{ isLoading ? 'Publishing...' : 'Publish Post' }}
             </button>
+
+            <p v-if="serverError" class="text-sm font-medium text-red-400 animate-pulse">
+              {{ serverError }}
+            </p>
           </div>
-        </div>
-      </form>
+        </form>
+      </div>
+
+      <p class="mt-8 text-center text-sm text-gray-500">
+        Title must be 16–64 characters and content must be 32–8192 characters
+      </p>
     </div>
   </div>
 </template>

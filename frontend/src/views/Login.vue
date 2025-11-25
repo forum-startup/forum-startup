@@ -28,34 +28,40 @@ async function login() {
 </script>
 
 <template>
-  <div class="flex min-h-[840px] flex-col bg-gray-900">
-    <div class="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
-
-      <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-        <h2 class="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-white">Sign in to your account</h2>
+  <div class="flex-1 flex items-center justify-center px-6 py-12">
+    <div class="w-full max-w-md space-y-8">
+      <div class="text-center">
+        <h2 class="text-3xl font-bold text-white">Sign in to your account</h2>
       </div>
 
-      <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-        <form class="space-y-6" @submit.prevent="login">
-          <div>
-            <label for="username" class="block text-sm font-medium leading-6 text-white">Username</label>
-            <input id="username" type="text" v-model="form.username" required
-                   class="block w-full rounded-md border-0 py-1.5 text-white shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-          </div>
+      <form class="space-y-6" @submit.prevent="login">
 
-          <div>
-            <label for="password" class="block text-sm font-medium leading-6 text-white">Password</label>
-            <input id="password" type="password" v-model="form.password" required
-                   class="block w-full rounded-md border-0 py-1.5 text-white shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-          </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-300">Username</label>
+          <input v-model="form.username" required class="mt-1 block w-full rounded-md border-0 bg-white/10 py-2.5 px-3 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500" />
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-300">Password</label>
+          <input v-model="form.password" type="password" required class="mt-1 block w-full rounded-md border-0 bg-white/10 py-2.5 px-3 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500" />
+        </div>
 
-          <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500">
-            Sign in
-          </button>
+        <button type="submit" class="w-full rounded-md bg-indigo-600 py-3 text-white font-semibold hover:bg-indigo-500">
+          Sign in
+        </button>
 
-          <p v-if="error" class="text-red-500 text-sm mt-2 text-center">{{ error }}</p>
-        </form>
-      </div>
+        <div class="text-center text-sm font-medium text-indigo-400
+         underline underline-offset-4 decoration-indigo-300/50
+         hover:decoration-indigo-300 hover:text-indigo-300
+         transition-colors duration-200">
+          <router-link
+              to="/register"
+          >
+            Don't have a registration yet? Sign up here
+          </router-link>
+        </div>
+
+        <p v-if="error" class="text-center text-sm text-red-400">{{ error }}</p>
+      </form>
     </div>
   </div>
 </template>
