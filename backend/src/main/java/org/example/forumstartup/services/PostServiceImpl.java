@@ -27,56 +27,10 @@ public class PostServiceImpl implements PostService {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
     }
-
-    /*
-        TODO
-        You can move helper methods at the very bottom, just so the important
-        part of the service can be seen first.
-
-        Also, it is considered good practice for methods that use other methods
+     /*
+      it is considered good practice for methods that use other methods
         to be below (parent-child like structure)
      */
-
-    /* Checks if a user has a role as an Admin */
-    private boolean isAdmin(User user) {
-        for (Role role : user.getRoles()){
-            if(role.getName().equals(ERole.ROLE_ADMIN)){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /*
-     * Service-layer block validation.
-     * Spring Security protects the web layer, but it does not know the business rules:
-     * who owns posts, who can edit, like, comment, or manage tags,
-     * therefore the service layer must still enforce these rules independently imo.
-     */
-    private void ensureNotBlocked(User user) {
-        if (user.isBlocked()) {
-            throw new AuthorizationException("Blocked users cannot perform this action.");
-        }
-    }
-
-    /* load a post or throw clean exception. */
-    private Post getPostOrThrow(Long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Post", "id", id.toString()));
-    }
-    /* Does service authZ to ensure proper rights */
-
-    private void ensureUserCanModifyPost(User currentUser, Post post) {
-
-        ensureNotBlocked(currentUser);
-        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
-        boolean isAdmin = isAdmin(currentUser);
-
-        if (!isOwner && !isAdmin) {
-            throw new AuthorizationException("You are not allowed to modify this post.");
-        }
-    }
 
     /* ========================= READ METHODS ========================= */
 
@@ -252,5 +206,45 @@ public class PostServiceImpl implements PostService {
     public List<Post> findByTag(String tagName, int limit) {
         String normalized = tagName == null ? "" : tagName.trim().toLowerCase();
         return trimToLimit(postRepository.findPostsByTagName(normalized), limit);
+    }
+
+    /* ========================= HELPER METHODS ========================= */
+
+    /*
+     * Spring Security protects the web layer, but it does not know the business rules:
+     * who owns posts, who can edit, like, comment, or manage tags,
+     * therefore the service layer must still enforce these rules independently.
+     */
+
+    private boolean isAdmin(User user) {
+        for (Role role : user.getRoles()){
+            if(role.getName().equals(ERole.ROLE_ADMIN)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void ensureNotBlocked(User user) {
+        if (user.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot perform this action.");
+        }
+    }
+
+    private Post getPostOrThrow(Long id) {
+        return postRepository.findById(id)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", id.toString()));
+    }
+
+    private void ensureUserCanModifyPost(User currentUser, Post post) {
+
+        ensureNotBlocked(currentUser);
+        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
+        boolean isAdmin = isAdmin(currentUser);
+
+        if (!isOwner && !isAdmin) {
+            throw new AuthorizationException("You are not allowed to modify this post.");
+        }
     }
 }

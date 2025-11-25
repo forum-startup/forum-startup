@@ -1,6 +1,5 @@
 package org.example.forumstartup.services;
 
-
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
@@ -162,7 +161,7 @@ public class PostServiceImplTests {
         creator.setBlocked(false);
         creator.setRoles(Set.of(role));
         String title = "Hi";
-        String content = "How we doing'?";
+        String content = "How we doing?";
 
         when(postRepository.save(any(Post.class))).thenReturn(basePost);
 
@@ -176,7 +175,7 @@ public class PostServiceImplTests {
         Post captured = argumentCaptor.getValue();
         assertEquals(creator, captured.getCreator());
         assertEquals("Hi", captured.getTitle());
-        assertEquals("How we doing'?", captured.getContent());
+        assertEquals("How we doing?", captured.getContent());
         assertEquals(0, captured.getLikesCount());
     }
 
