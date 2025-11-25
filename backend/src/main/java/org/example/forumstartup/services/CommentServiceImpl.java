@@ -6,6 +6,7 @@ import org.example.forumstartup.dtos.comment.UpdateCommentDto;
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
+import org.example.forumstartup.mappers.CommentMapper;
 import org.example.forumstartup.models.Comment;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
@@ -24,6 +25,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
+    private final CommentMapper commentMapper;
 
     @Override
     @Transactional
@@ -38,13 +40,7 @@ public class CommentServiceImpl implements CommentService {
             ensureSamePost(post, parent);
         }
 
-        /*
-            TODO
-            create a DTO to Comment mapper and use it inside the controller
-            so a Comment entity is passed to the service
-         */
-
-        Comment comment = buildComment(post, user, parent, dto.content());
+        Comment comment = commentMapper.createFromDto(post, user, parent, dto);
         return commentRepository.save(comment);
     }
 
@@ -98,23 +94,18 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.save(comment);
     }
 
-    /*
-        TODO
-        Unlike does not check if you have already liked the comment,
-        since you cannot unlike a comment you haven't liked
-
-        (frontend will not allow it anyway, but I think a check in the service is necessary)
-     */
     @Override
     @Transactional
     public Comment unlikeComment(Long commentId, User user) {
         Comment comment = getComment(commentId);
 
-        if (comment.getLikedBy().remove(user)) {
-            comment.setLikesCount(Math.max(0, comment.getLikesCount() - 1));
+        boolean removed = comment.getLikedBy().remove(user);
+        if (!removed) {
+            return comment;
         }
 
-        return commentRepository.save(comment);
+        comment.setLikesCount(Math.max(0, comment.getLikesCount() - 1));
+        return comment;
     }
 
     @Override
@@ -141,7 +132,7 @@ public class CommentServiceImpl implements CommentService {
                 .anyMatch(r -> r.getName().equals(ERole.ROLE_ADMIN));
 
         if (!isAdmin)
-            throw new AuthorizationException("You are not allowed to perform this action.");
+            throw new AuthorizationException(UNAUTHORIZED_ACTION_EXCEPTION_MESSAGE);
     }
 
     private void ensureAuthorOrAdmin(Comment comment, User user) {
@@ -149,7 +140,7 @@ public class CommentServiceImpl implements CommentService {
         boolean isAdmin = user.getRoles().stream().anyMatch(r -> r.getName().equals(ERole.ROLE_ADMIN));
 
         if (!isOwner && !isAdmin) {
-            throw new AuthorizationException("You are not allowed to modify this comment.");
+            throw new AuthorizationException(COMMENT_MODIFICATION_EXCEPTION_MESSAGE);
         }
     }
 
@@ -157,20 +148,6 @@ public class CommentServiceImpl implements CommentService {
         if (parent != null && !parent.getPost().getId().equals(post.getId())) {
             throw new AuthorizationException(WRONG_POST_REPLY_EXCEPTION_MESSAGE);
         }
-    }
-
-    /*
-        TODO
-        This should be the mapper
-     */
-    private Comment buildComment(Post post, User creator, Comment parent, String content) {
-        Comment c = new Comment();
-        c.setPost(post);
-        c.setCreator(creator);
-        c.setParent(parent);
-        c.setContent(content);
-        c.setLikesCount(0);
-        return c;
     }
 
     private Comment getComment(Long id) {
