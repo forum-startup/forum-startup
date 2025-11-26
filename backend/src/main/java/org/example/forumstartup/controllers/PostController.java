@@ -31,7 +31,9 @@ public class PostController {
     private final AuthenticationUtils authenticationUtils;
     private final PostMapper postMapper;
 
-    public PostController(PostService service, AuthenticationUtils authenticationUtils, PostMapper postMapper) {
+    public PostController(PostService service,
+                          AuthenticationUtils authenticationUtils,
+                          PostMapper postMapper) {
         this.service = service;
         this.authenticationUtils = authenticationUtils;
         this.postMapper = postMapper;
@@ -197,5 +199,4 @@ public class PostController {
         service.removeTagFromPost(postId, currentUser, dto.tag());
         return ResponseEntity.noContent().build();
     }
-
 }

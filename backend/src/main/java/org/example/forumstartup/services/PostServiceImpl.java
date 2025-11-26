@@ -8,7 +8,6 @@ import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
-import org.example.forumstartup.repositories.TagRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
