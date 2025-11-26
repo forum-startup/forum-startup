@@ -11,6 +11,12 @@ import java.util.List;
 @Component
 public class PostMapper {
     public PostResponseDto toDto(Post post) {
+        List<String> tagNames = post.getTags()
+                .stream()
+                .map(t -> t.getName())
+                .sorted()
+                .toList();
+
         return new PostResponseDto(
                 post.getId(),
                 post.getCreator().getId(),
@@ -18,6 +24,7 @@ public class PostMapper {
                 post.getTitle(),
                 post.getContent(),
                 post.getLikesCount(),
+                tagNames,
                 post.getCreatedAt(),
                 post.getUpdatedAt()
         );
