@@ -10,10 +10,9 @@ import org.example.forumstartup.dtos.tags.RemoveTagDto;
 import org.example.forumstartup.mappers.PostMapper;
 import org.example.forumstartup.models.*;
 import org.example.forumstartup.services.PostService;
-import org.example.forumstartup.services.TagService;
+import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +27,7 @@ import java.util.List;
 public class PostController {
     private final PostService service;
     private final PostMapper mapper;
+    private final AuthenticationUtils authenticationUtils;
 
     // ========= PUBLIC READ ENDPOINTS =========
 
@@ -80,17 +80,17 @@ public class PostController {
     @PutMapping("/private/posts/{postId}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<PostResponseDto> edit(@PathVariable long postId,
-                                                @AuthenticationPrincipal User currentUser,
                                                 @RequestBody @Valid PostUpdateDto dto
     ) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
         Post updated = service.edit(postId, currentUser, dto.title(), dto.content());
         return ResponseEntity.ok(mapper.toDto(updated));
     }
 
     @DeleteMapping("/private/posts/{postId}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> delete(@PathVariable long postId,
-                                       @AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<Void> delete(@PathVariable long postId) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
         service.delete(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
@@ -99,15 +99,16 @@ public class PostController {
 
     @PostMapping("/private/posts/{postId}/likes")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> like(@PathVariable long postId, @AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<Void> like(@PathVariable long postId) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
         service.like(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/private/posts/{postId}/likes")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> unlike(@PathVariable long postId,
-                                       @AuthenticationPrincipal User currentUser) {
+    public ResponseEntity<Void> unlike(@PathVariable long postId) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
         service.unlike(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
@@ -115,8 +116,8 @@ public class PostController {
     // ========= Admin ENDPOINT =========
     @DeleteMapping("/admin/posts/{postId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> adminDelete(@PathVariable long postId,
-                                            @AuthenticationPrincipal User adminUser) {
+    public ResponseEntity<Void> adminDelete(@PathVariable long postId) {
+        User adminUser = authenticationUtils.getAuthenticatedUser();
         service.adminDelete(postId, adminUser);
         return ResponseEntity.noContent().build();
     }
@@ -138,9 +139,9 @@ public class PostController {
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Void> addTags(
             @PathVariable long postId,
-            @AuthenticationPrincipal User currentUser,
             @RequestBody @Valid AddTagsDto dto
     ) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
         service.addTagsToPost(postId, currentUser, dto.tags());
         return ResponseEntity.noContent().build();
     }
@@ -150,9 +151,9 @@ public class PostController {
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Void> removeTag(
             @PathVariable long postId,
-            @AuthenticationPrincipal User currentUser,
             @RequestBody RemoveTagDto dto
     ) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
         service.removeTagFromPost(postId, currentUser, dto.tag());
         return ResponseEntity.noContent().build();
     }
