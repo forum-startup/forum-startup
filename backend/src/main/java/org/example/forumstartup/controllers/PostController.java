@@ -37,9 +37,7 @@ public class PostController {
         this.authenticationUtils = authenticationUtils;
     }
 
-    // =====================================================
-    // PUBLIC READ ENDPOINTS
-    // =====================================================
+    // ===================== PUBLIC READ ENDPOINTS =====================
 
     @GetMapping("/public/posts/recent")
     @Operation(summary = "Get most recent posts")
@@ -76,7 +74,7 @@ public class PostController {
         return ResponseEntity.ok(toDtoList(service.findByTag(tagName, limit)));
     }
 
-// ===================== PRIVATE (AUTHENTICATED) READ ENDPOINTS =====================
+// ===================== PRIVATE READ ENDPOINTS =====================
 
     @Operation(
             summary = "Get post by ID (private)",
@@ -107,6 +105,9 @@ public class PostController {
                 toDtoList(service.findByCreatorId(creatorId, limit))
         );
     }
+
+    // ===================== PRIVATE WRITE ENDPOINTS =====================
+
     @PostMapping("/private/posts")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Create a post")
@@ -139,9 +140,7 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    // =====================================================
-    // LIKES
-    // =====================================================
+    // ===================== PRIVATE LIKE ENDPOINTS =====================
 
     @PostMapping("/private/posts/{postId}/likes")
     @PreAuthorize("hasRole('USER')")
@@ -161,9 +160,7 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    // =====================================================
-    // ADMIN ENDPOINT
-    // =====================================================
+    // ===================== ADMIN WRITE ENDPOINTS =====================
 
     @DeleteMapping("/admin/posts/{postId}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -174,9 +171,7 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    // =====================================================
-    // TAG MANAGEMENT
-    // =====================================================
+    // ===================== PRIVATE TAG ENDPOINTS =====================
 
     @PostMapping("/private/posts/{postId}/tags")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
