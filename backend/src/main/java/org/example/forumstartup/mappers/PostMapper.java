@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-
 @Component
 public class PostMapper {
     public PostResponseDto toDto(Post post) {

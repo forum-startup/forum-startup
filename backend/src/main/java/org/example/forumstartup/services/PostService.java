@@ -6,7 +6,8 @@ import org.example.forumstartup.models.User;
 import java.util.List;
 
 public interface PostService {
-    void create(Post post);
+
+    Post create(User currentUser, String title, String content);
 
     Post edit(Long postId, User currentUser, String titleToUpdate, String contentToUpdate);
 

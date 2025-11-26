@@ -7,8 +7,7 @@ import jakarta.validation.Valid;
 import org.example.forumstartup.dtos.post.PostCreateDto;
 import org.example.forumstartup.dtos.post.PostResponseDto;
 import org.example.forumstartup.dtos.post.PostUpdateDto;
-import org.example.forumstartup.dtos.tags.AddTagsDto;
-import org.example.forumstartup.dtos.tags.RemoveTagDto;
+import org.example.forumstartup.mappers.PostMapper;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.services.PostService;
@@ -20,9 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.example.forumstartup.mappers.PostMapper.toDto;
-import static org.example.forumstartup.mappers.PostMapper.toDtoList;
-
 @RestController
 @RequestMapping("/api")
 @CrossOrigin(origins = "http://localhost:5173")
@@ -31,10 +27,12 @@ public class PostController {
 
     private final PostService service;
     private final AuthenticationUtils authenticationUtils;
+    private final PostMapper postMapper;
 
-    public PostController(PostService service, AuthenticationUtils authenticationUtils) {
+    public PostController(PostService service, AuthenticationUtils authenticationUtils, PostMapper postMapper) {
         this.service = service;
         this.authenticationUtils = authenticationUtils;
+        this.postMapper = postMapper;
     }
 
     // ===================== PUBLIC READ ENDPOINTS =====================
@@ -44,7 +42,7 @@ public class PostController {
     public ResponseEntity<List<PostResponseDto>> getRecent(
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(toDtoList(service.mostRecent(limit)));
+        return ResponseEntity.ok(postMapper.toDtoList(service.mostRecent(limit)));
     }
 
     @GetMapping("/public/posts/top-commented")
@@ -52,7 +50,7 @@ public class PostController {
     public ResponseEntity<List<PostResponseDto>> topCommented(
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(toDtoList(service.topCommented(limit)));
+        return ResponseEntity.ok(postMapper.toDtoList(service.topCommented(limit)));
     }
 
     @GetMapping("/public/posts/search")
@@ -61,7 +59,7 @@ public class PostController {
             @RequestParam(name = "word") String query,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(toDtoList(service.search(query, limit)));
+        return ResponseEntity.ok(postMapper.toDtoList(service.search(query, limit)));
     }
 
 // ===================== PRIVATE READ ENDPOINTS =====================
@@ -77,7 +75,7 @@ public class PostController {
     public ResponseEntity<PostResponseDto> getById(@PathVariable long postId) {
         authenticationUtils.getAuthenticatedUser();
         Post post = service.getById(postId);
-        return ResponseEntity.ok(toDto(post));
+        return ResponseEntity.ok(postMapper.toDto(post));
     }
 
     @Operation(
@@ -92,7 +90,7 @@ public class PostController {
     ) {
         authenticationUtils.getAuthenticatedUser(); // ensures logged-in
         return ResponseEntity.ok(
-                toDtoList(service.findByCreatorId(creatorId, limit))
+                postMapper.toDtoList(service.findByCreatorId(creatorId, limit))
         );
     }
 
@@ -106,7 +104,7 @@ public class PostController {
     ) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         Post created = service.create(currentUser, dto.title(), dto.content());
-        return ResponseEntity.status(HttpStatus.CREATED).body(toDto(created));
+        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.toDto(created));
     }
 
     @PutMapping("/private/posts/{postId}")
@@ -118,7 +116,7 @@ public class PostController {
     ) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         Post updated = service.edit(postId, currentUser, dto.title(), dto.content());
-        return ResponseEntity.ok(toDto(updated));
+        return ResponseEntity.ok(postMapper.toDto(updated));
     }
 
     @DeleteMapping("/private/posts/{postId}")
