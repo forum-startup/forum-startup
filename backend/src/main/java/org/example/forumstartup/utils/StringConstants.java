@@ -26,4 +26,9 @@ public class StringConstants {
     public static final String ONLY_ADMINS_CAN_PROMOTE_USERS = "Only admins can promote users";
 
     public static final String ADMIN_ROLE_NOT_FOUND = "Admin role not found";
+
+    public static final String BLOCKED_USER_EXCEPTION_MESSAGE = "Blocked users cannot perform this action.";
+    public static final String WRONG_POST_REPLY_EXCEPTION_MESSAGE = "Reply must be under the same post as the parent comment.";
+    public static final String OWN_COMMENT_LIKE_EXCEPTION_MESSAGE = "You cannot like your own comment.";
+    public static final String COMMENT_MODIFICATION_EXCEPTION_MESSAGE = "You are not allowed to modify this comment.";
 }

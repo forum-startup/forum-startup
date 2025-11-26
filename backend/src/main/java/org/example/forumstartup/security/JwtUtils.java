@@ -2,6 +2,7 @@ package org.example.forumstartup.security;
 
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,20 +21,21 @@ public class JwtUtils {
 
     private Key key;
 
-    private final long expirationMs = 1 * 60 * 60 * 1000; // 1 hour
-
     @PostConstruct
     public void init() {
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String username, Set<String> roles) {
+        // 5 minutes
+        long expirationMs = 5 * 60 * 1000;
+
         return Jwts.builder()
                 .setSubject(username)
                 .claim("roles", roles)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
-                .signWith(key)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
