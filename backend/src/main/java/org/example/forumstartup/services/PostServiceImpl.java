@@ -24,7 +24,7 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final AuthenticationUtils authenticationUtils;
-    private final TagRepository tagRepository;
+    private final TagService tagService;
 
     /* Checks if a user has a role as an Admi */
     private boolean isAdmin(User user) {
@@ -196,17 +196,7 @@ public class PostServiceImpl implements PostService {
         }
 
         for (String rawName : tagNames) {
-            if (rawName == null || rawName.isBlank()) continue;
-
-            String normalized = rawName.trim().toLowerCase();
-
-            Tag tag = tagRepository.findByName(normalized)
-                    .orElseGet(() -> {
-                        Tag t = new Tag();
-                        t.setName(normalized);
-                        return tagRepository.save(t);
-                    });
-
+            Tag tag = tagService.findOrCreate(rawName);
             post.getTags().add(tag);
         }
 
@@ -219,10 +209,9 @@ public class PostServiceImpl implements PostService {
         Post post = getPostOrThrow(postId);
         ensureUserCanModifyPost(currentUser, post);
 
-        if (tagName == null || tagName.isBlank()) return;
+        Tag tag = tagService.getByName(tagName);
 
-        String normalized = tagName.trim().toLowerCase();
-        post.getTags().removeIf(tag -> tag.getName().equals(normalized));
+        post.getTags().removeIf(t -> t.getId().equals(tag.getId()));
 
         postRepository.save(post);
     }
@@ -232,7 +221,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<Post> findByTag(String tagName, int limit) {
-        String normalized = tagName == null ? "" : tagName.trim().toLowerCase();
-        return trimToLimit(postRepository.findPostsByTagName(normalized), limit);
+        Tag tag = tagService.getByName(tagName); // normalized + validated
+        return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
     }
 }

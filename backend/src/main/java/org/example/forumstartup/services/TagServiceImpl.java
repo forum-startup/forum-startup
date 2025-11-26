@@ -48,7 +48,7 @@ public class TagServiceImpl implements TagService {
         String cleaned = raw.trim().toLowerCase()
                 .replaceAll("\\s+", "-")
                 .replaceAll("-{2,}", "-");
-        
+
         if (cleaned.length() < TAG_MIN_LENGTH || cleaned.length() > TAG_MAX_LENGTH)
             throw new InvalidTagFormatException(
                     String.format(INVALID_TAG_LENGTH, TAG_MIN_LENGTH, TAG_MAX_LENGTH)

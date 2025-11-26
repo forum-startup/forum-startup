@@ -10,6 +10,7 @@ import org.example.forumstartup.dtos.tags.RemoveTagDto;
 import org.example.forumstartup.mappers.PostMapper;
 import org.example.forumstartup.models.*;
 import org.example.forumstartup.services.PostService;
+import org.example.forumstartup.services.TagService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
