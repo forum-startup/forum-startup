@@ -7,6 +7,8 @@ import jakarta.validation.Valid;
 import org.example.forumstartup.dtos.post.PostCreateDto;
 import org.example.forumstartup.dtos.post.PostResponseDto;
 import org.example.forumstartup.dtos.post.PostUpdateDto;
+import org.example.forumstartup.dtos.tags.AddTagsDto;
+import org.example.forumstartup.dtos.tags.RemoveTagDto;
 import org.example.forumstartup.mappers.PostMapper;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
@@ -156,6 +158,43 @@ public class PostController {
     public ResponseEntity<Void> adminDelete(@PathVariable long postId) {
         User admin = authenticationUtils.getAuthenticatedUser();
         service.adminDelete(postId, admin);
+        return ResponseEntity.noContent().build();
+    }
+
+    // ================= TAG OPERATIONS =================
+
+    // Public: browse posts by tag
+    @GetMapping("/public/posts/by-tag/{tagName}")
+    public ResponseEntity<List<PostResponseDto>> getPostsByTag(
+            @PathVariable String tagName,
+            @RequestParam(defaultValue = "10") int limit
+    ) {
+        return ResponseEntity.ok(
+                postMapper.toDtoList(service.findByTag(tagName, limit))
+        );
+    }
+
+    // USER or ADMIN: Add tags to a post
+    @PostMapping("/private/posts/{postId}/tags")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<Void> addTags(
+            @PathVariable long postId,
+            @RequestBody @Valid AddTagsDto dto
+    ) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
+        service.addTagsToPost(postId, currentUser, dto.tags());
+        return ResponseEntity.noContent().build();
+    }
+
+    // USER or ADMIN: Remove a tag from a post
+    @DeleteMapping("/private/posts/{postId}/tags")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    public ResponseEntity<Void> removeTag(
+            @PathVariable long postId,
+            @RequestBody RemoveTagDto dto
+    ) {
+        User currentUser = authenticationUtils.getAuthenticatedUser();
+        service.removeTagFromPost(postId, currentUser, dto.tag());
         return ResponseEntity.noContent().build();
     }
 

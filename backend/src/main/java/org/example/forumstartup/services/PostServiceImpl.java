@@ -5,8 +5,10 @@ import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.Role;
+import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
+import org.example.forumstartup.repositories.TagRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +21,11 @@ import static org.example.forumstartup.utils.ListUtils.trimToLimit;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
+    private final TagService tagService;
 
-    public PostServiceImpl(PostRepository postRepository) {
+    public PostServiceImpl(PostRepository postRepository, TagService tagService) {
         this.postRepository = postRepository;
+        this.tagService = tagService;
     }
      /*
       it is considered good practice for methods that use other methods
@@ -161,8 +165,8 @@ public class PostServiceImpl implements PostService {
      */
 
     private boolean isAdmin(User user) {
-        for (Role role : user.getRoles()){
-            if(role.getName().equals(ERole.ROLE_ADMIN)){
+        for (Role role : user.getRoles()) {
+            if (role.getName().equals(ERole.ROLE_ADMIN)) {
                 return true;
             }
         }
@@ -190,5 +194,43 @@ public class PostServiceImpl implements PostService {
         if (!isOwner && !isAdmin) {
             throw new AuthorizationException("You are not allowed to modify this post.");
         }
+    }
+
+    @Override
+    @Transactional
+    public void addTagsToPost(Long postId, User currentUser, List<String> tagNames) {
+        Post post = getPostOrThrow(postId);
+        ensureUserCanModifyPost(currentUser, post);
+
+        if (tagNames == null || tagNames.isEmpty()) {
+            return;
+        }
+
+        for (String rawName : tagNames) {
+            Tag tag = tagService.findOrCreate(rawName);
+            post.getTags().add(tag);
+        }
+
+        postRepository.save(post);
+    }
+
+    @Override
+    @Transactional
+    public void removeTagFromPost(Long postId, User currentUser, String tagName) {
+        Post post = getPostOrThrow(postId);
+        ensureUserCanModifyPost(currentUser, post);
+
+        Tag tag = tagService.getByName(tagName);
+
+        post.getTags().removeIf(t -> t.getId().equals(tag.getId()));
+
+        postRepository.save(post);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> findByTag(String tagName, int limit) {
+        Tag tag = tagService.getByName(tagName); // normalized + validated
+        return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
     }
 }
