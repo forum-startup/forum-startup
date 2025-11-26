@@ -22,7 +22,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             """)
     List<Post> search(@Param("word") String word);
 
-
     @Query("""
             SELECT p FROM Post p
             LEFT JOIN p.comments c

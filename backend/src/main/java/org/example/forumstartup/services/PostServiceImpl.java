@@ -1,15 +1,12 @@
 package org.example.forumstartup.services;
 
-import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
-import org.example.forumstartup.models.Tag;
+import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
-import org.example.forumstartup.utils.AuthenticationUtils;
-import org.example.forumstartup.repositories.TagRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,49 +16,17 @@ import java.util.List;
 import static org.example.forumstartup.utils.ListUtils.trimToLimit;
 
 @Service
-@RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final AuthenticationUtils authenticationUtils;
-    private final TagService tagService;
 
-    /* Checks if a user has a role as an Admi */
-    private boolean isAdmin(User user) {
-        return user.getRoles().stream()
-                .anyMatch(r -> r.getName().equals(ERole.ROLE_ADMIN));
+    public PostServiceImpl(PostRepository postRepository) {
+        this.postRepository = postRepository;
     }
-
-    /*
-     * Service-layer validation for blocked users.
-     * Needed even with security config because:
-     * - JWT is stateless → blocked users may still have a valid token.
-     * - Business rules should always be enforced in the service layer.
+     /*
+      it is considered good practice for methods that use other methods
+        to be below (parent-child like structure)
      */
-    private void ensureNotBlocked(User user) {
-        if (user.isBlocked()) {
-            throw new AuthorizationException("Blocked users cannot perform this action.");
-        }
-    }
-
-    /* load a post or throw clean exception. */
-    private Post getPostOrThrow(Long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Post", "id", id.toString()));
-    }
-    /* Does service authZ to ensure proper rights */
-
-    private void ensureUserCanModifyPost(User currentUser, Post post) {
-
-        ensureNotBlocked(currentUser);
-        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
-        boolean isAdmin = isAdmin(currentUser);
-
-        if (!isOwner && !isAdmin) {
-            throw new AuthorizationException("You are not allowed to modify this post.");
-        }
-    }
 
     /* ========================= READ METHODS ========================= */
 
@@ -104,13 +69,16 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public void create(Post post) {
-        User actingUser = authenticationUtils.getAuthenticatedUser();
+    public Post create(User currentUser, String title, String content) {
 
-        post.setCreator(actingUser);
+        ensureNotBlocked(currentUser);
+        Post post = new Post();
+        post.setCreator(currentUser);
+        post.setTitle(title != null ? title.trim() : null);
+        post.setContent(content != null ? content.trim() : null);
         post.setLikesCount(0);
 
-        postRepository.save(post);
+        return postRepository.save(post);
     }
 
     @Override
@@ -135,6 +103,7 @@ public class PostServiceImpl implements PostService {
         ensureUserCanModifyPost(currentUser, post);
         postRepository.delete(post);
     }
+
     /*
      * Admin-only delete. Controller enforces @PreAuthorize,
      * but service still checks for safety.
@@ -148,7 +117,6 @@ public class PostServiceImpl implements PostService {
         }
         Post post = getPostOrThrow(postId);
         postRepository.delete(post);
-
     }
 
     /* ========================= LIKE / UNLIKE ========================= */
@@ -184,44 +152,43 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    /* ========================= TAG WRITE METHODS ========================= */
-    @Override
-    @Transactional
-    public void addTagsToPost(Long postId, User currentUser, List<String> tagNames) {
-        Post post = getPostOrThrow(postId);
-        ensureUserCanModifyPost(currentUser, post);
+    /* ========================= HELPER METHODS ========================= */
 
-        if (tagNames == null || tagNames.isEmpty()) {
-            return;
+    /*
+     * Spring Security protects the web layer, but it does not know the business rules:
+     * who owns posts, who can edit, like, comment, or manage tags,
+     * therefore the service layer must still enforce these rules independently.
+     */
+
+    private boolean isAdmin(User user) {
+        for (Role role : user.getRoles()){
+            if(role.getName().equals(ERole.ROLE_ADMIN)){
+                return true;
+            }
         }
-
-        for (String rawName : tagNames) {
-            Tag tag = tagService.findOrCreate(rawName);
-            post.getTags().add(tag);
-        }
-
-        postRepository.save(post);
+        return false;
     }
 
-    @Override
-    @Transactional
-    public void removeTagFromPost(Long postId, User currentUser, String tagName) {
-        Post post = getPostOrThrow(postId);
-        ensureUserCanModifyPost(currentUser, post);
-
-        Tag tag = tagService.getByName(tagName);
-
-        post.getTags().removeIf(t -> t.getId().equals(tag.getId()));
-
-        postRepository.save(post);
+    private void ensureNotBlocked(User user) {
+        if (user.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot perform this action.");
+        }
     }
 
-    /* ========================= TAG READ METHOD ========================= */
+    private Post getPostOrThrow(Long id) {
+        return postRepository.findById(id)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", id.toString()));
+    }
 
-    @Override
-    @Transactional(readOnly = true)
-    public List<Post> findByTag(String tagName, int limit) {
-        Tag tag = tagService.getByName(tagName); // normalized + validated
-        return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
+    private void ensureUserCanModifyPost(User currentUser, Post post) {
+
+        ensureNotBlocked(currentUser);
+        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
+        boolean isAdmin = isAdmin(currentUser);
+
+        if (!isOwner && !isAdmin) {
+            throw new AuthorizationException("You are not allowed to modify this post.");
+        }
     }
 }
