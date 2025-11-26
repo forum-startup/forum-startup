@@ -4,61 +4,64 @@ import Profile from "../views/Profile.vue";
 import Login from "../views/Login.vue";
 import {isLoggedIn, hasRole} from "../utils/auth";
 import Register from "../views/Register.vue";
-import CreatePost from "../views/CreatePost.vue";
+import SharePost from "../views/SharePost.vue";
 import Users from "../views/Users.vue";
 import MyPosts from "../views/MyPosts.vue";
+import EditPost from "../views/EditPost.vue";
 
 const routes = [
     {
         path: "/",
-        name: "home",
+        name: "Home",
         component: Home
     },
 
     {
         path: "/login",
-        name: "login",
+        name: "Login",
         component: Login
     },
 
     {
         path: "/register",
-        name: "register",
+        name: "Register",
         component: Register
     },
 
     {
         path: "/profile",
-        name: "profile",
+        name: "Profile",
         component: Profile,
         meta: {requiresAuth: true}
     },
 
     {
-        path: "/post",
-        name: "post",
-        component: CreatePost,
+        path: "/share",
+        name: "SharePost",
+        component: SharePost,
         meta: {requiresAuth: true}
     },
 
     {
         path: "/users",
-        name: "/users",
+        name: "Users",
         component: Users,
         meta: {requiresAuth: true}
     },
 
     {
         path: "/my-posts",
-        name: "/my-posts",
+        name: "MyPosts",
         component: MyPosts,
         meta: {requiresAuth: true}
     },
-    // {
-    //     path: "/admin",
-    //     name: "admin",
-    //     component:
-    // }
+
+    {
+        path: "/my-posts/:postId/edit",
+        name: "EditPost",
+        component: EditPost,
+        meta: {requiresAuth: true}
+    },
 ]
 
 const router = createRouter({

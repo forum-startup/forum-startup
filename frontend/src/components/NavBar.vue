@@ -37,7 +37,7 @@ async function handleLogout() {
       <div class="hidden lg:flex lg:items-center lg:gap-x-10">
         <router-link
             v-if="currentUser"
-            to="/post"
+            to="/share"
             class="text-sm font-medium text-white hover:text-indigo-400 transition"
         >
           Share your story

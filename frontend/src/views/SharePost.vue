@@ -1,8 +1,8 @@
 <script setup>
-import { useCreatePost } from '../composables/useCreatePost.js'
+import {useCreatePost} from "../composables/useCreatePost.js";
 
 const {
-  form,
+  post,
   errors,
   serverError,
   isLoading,
@@ -28,12 +28,12 @@ const {
               <label for="title" class="text-sm font-medium text-gray-300">Title</label>
             </div>
             <input
-                v-model="form.title"
+                v-model="post.title"
                 type="text"
                 id="title"
                 placeholder="Your title..."
                 class="w-full rounded-xl border-0 bg-white/10 px-5 py-4 text-xl font-medium text-white
-                     placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none
+                     placeholder:text-gray-500 ring-gray-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none
                      ring-1 ring-inset transition"
                 :class="{ 'ring-red-500/50 focus:ring-red-500': errors.title }"
             />
@@ -46,12 +46,12 @@ const {
               <label for="content" class="text-sm font-medium text-gray-300">Your story</label>
             </div>
             <textarea
-                v-model="form.content"
+                v-model="post.content"
                 id="content"
                 rows="12"
                 placeholder="Start writing your post..."
                 class="w-full rounded-xl border-0 bg-white/10 px-5 py-4 text-lg text-gray-200
-                     placeholder:text-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none
+                     placeholder:text-gray-500 ring-gray-600 focus:ring-2 focus:ring-indigo-500 focus:outline-none
                      resize-none transition leading-relaxed ring-1 ring-inset"
                 :class="{ 'ring-red-500/50 focus:ring-red-500': errors.content }"
             ></textarea>

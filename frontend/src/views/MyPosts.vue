@@ -1,16 +1,24 @@
 <script setup>
-import {usePosts} from "../composables/usePosts.js";
 import {onMounted} from "vue";
-import {currentUser, userLoading} from "../utils/store.js";
+import {currentUser} from "../utils/store.js";
+import {usePosts} from "../composables/usePosts.js";
+import {usePost} from "../composables/usePost.js";
 
-const {posts, isLoading, error, fetchCurrentUserPosts, editPostById, deletePostById} = usePosts()
+const {posts, isLoading, errors, fetchCurrentUserPosts} = usePosts()
+const {deletePostById, serverError} = usePost()
 
 onMounted(() => {
-  console.log(currentUser.value)
   if (currentUser.value) {
     fetchCurrentUserPosts()
   }
 })
+
+async function remove(postId) {
+  const success = await deletePostById(postId)
+  if(success) {
+    await fetchCurrentUserPosts()
+  }
+}
 
 </script>
 
@@ -36,8 +44,8 @@ onMounted(() => {
       </div>
 
       <!-- Error State -->
-      <div v-else-if="error" class="text-center py-12">
-        <p class="text-red-400 font-medium">{{ error }}</p>
+      <div v-else-if="errors" class="text-center py-12">
+        <p class="text-red-400 font-medium">{{ errors.value }}</p>
         <button @click="fetchCurrentUserPosts" class="mt-4 text-indigo-400 hover:text-indigo-300 text-sm">
           Try again
         </button>
@@ -61,7 +69,7 @@ onMounted(() => {
 
         <!-- Posts List -->
         <ul class="divide-y divide-white/10">
-          <li v-for="post in posts" :key="post.id" class="hover:bg-white/5 transition">
+          <li v-for="post in posts" :key="post.postId" class="hover:bg-white/5 transition">
             <div class="px-8 py-6 flex items-center justify-between">
               <!-- Left: Post Info -->
               <div class="flex items-center gap-5">
@@ -81,14 +89,13 @@ onMounted(() => {
               </div>
 
               <div class="flex items-center gap-3 w-auto">
-                <button
-                    @click="editPostById(post.id)"
-                    class="px-4 py-2 text-sm font-medium text-blue-400 hover:bg-blue-900/70 rounded-lg transition mr-2"
-                >
+                <router-link
+                    :to="{ name: 'EditPost', params: { postId: post.postId } }"
+                    class="px-4 py-2 text-sm font-medium text-blue-400 hover:bg-blue-900/70 rounded-lg transition mr-2">
                   Edit
-                </button>
+                </router-link>
                 <button
-                    @click="deletePostById(post.id)"
+                    @click="remove(post.postId)"
                     class="px-4 py-2 text-sm font-medium text-red-400 hover:bg-red-900/30 rounded-lg transition mr-2"
                 >
                   Delete
@@ -103,6 +110,14 @@ onMounted(() => {
           <p class="text-gray-400">No posts found.</p>
         </div>
       </div>
+
+      <!-- Server Error -->
+      <div v-if="serverError" class="text-center py-16">
+        <p class="text-sm font-medium text-red-400 animate-pulse">
+          {{ serverError }}
+        </p>
+      </div>
+
     </div>
   </div>
 </template>
