@@ -8,6 +8,8 @@ import org.example.forumstartup.repositories.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.example.forumstartup.utils.TagConstants.*;
 
 @Service
@@ -54,4 +56,11 @@ public class TagServiceImpl implements TagService {
 
         return cleaned;
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Tag> getAll() {
+        return tagRepository.findAll();
+    }
+
 }
