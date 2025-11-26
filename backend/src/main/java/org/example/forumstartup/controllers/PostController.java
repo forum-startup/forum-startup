@@ -85,7 +85,7 @@ public class PostController {
     @GetMapping("/private/posts/{postId}")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<PostResponseDto> getById(@PathVariable long postId) {
-        User currentUser = authenticationUtils.getAuthenticatedUser();
+        authenticationUtils.getAuthenticatedUser();
         Post post = service.getById(postId);
         return ResponseEntity.ok(toDto(post));
     }
