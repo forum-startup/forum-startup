@@ -154,6 +154,44 @@ public class PostServiceImpl implements PostService {
             postRepository.save(post);
         }
     }
+    /* ========================= TAG OPERATIONS ========================= */
+    @Override
+    @Transactional
+    public void addTagsToPost(Long postId, User currentUser, List<String> tagNames) {
+        Post post = getPostOrThrow(postId);
+        ensureUserCanModifyPost(currentUser, post);
+
+        if (tagNames == null || tagNames.isEmpty()) {
+            return;
+        }
+
+        for (String rawName : tagNames) {
+            Tag tag = tagService.findOrCreate(rawName);
+            post.getTags().add(tag);
+        }
+
+        postRepository.save(post);
+    }
+
+    @Override
+    @Transactional
+    public void removeTagFromPost(Long postId, User currentUser, String tagName) {
+        Post post = getPostOrThrow(postId);
+        ensureUserCanModifyPost(currentUser, post);
+
+        Tag tag = tagService.getByName(tagName);
+
+        post.getTags().removeIf(t -> t.getId().equals(tag.getId()));
+
+        postRepository.save(post);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> findByTag(String tagName, int limit) {
+        Tag tag = tagService.getByName(tagName); // normalized + validated
+        return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
+    }
 
     /* ========================= HELPER METHODS ========================= */
 
@@ -195,41 +233,5 @@ public class PostServiceImpl implements PostService {
         }
     }
 
-    @Override
-    @Transactional
-    public void addTagsToPost(Long postId, User currentUser, List<String> tagNames) {
-        Post post = getPostOrThrow(postId);
-        ensureUserCanModifyPost(currentUser, post);
 
-        if (tagNames == null || tagNames.isEmpty()) {
-            return;
-        }
-
-        for (String rawName : tagNames) {
-            Tag tag = tagService.findOrCreate(rawName);
-            post.getTags().add(tag);
-        }
-
-        postRepository.save(post);
-    }
-
-    @Override
-    @Transactional
-    public void removeTagFromPost(Long postId, User currentUser, String tagName) {
-        Post post = getPostOrThrow(postId);
-        ensureUserCanModifyPost(currentUser, post);
-
-        Tag tag = tagService.getByName(tagName);
-
-        post.getTags().removeIf(t -> t.getId().equals(tag.getId()));
-
-        postRepository.save(post);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Post> findByTag(String tagName, int limit) {
-        Tag tag = tagService.getByName(tagName); // normalized + validated
-        return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
-    }
 }
