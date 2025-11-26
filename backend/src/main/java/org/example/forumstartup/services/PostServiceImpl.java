@@ -5,10 +5,8 @@ import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.Role;
-import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
-import org.example.forumstartup.repositories.TagRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,11 +19,9 @@ import static org.example.forumstartup.utils.ListUtils.trimToLimit;
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
-    private final TagRepository tagRepository;
 
-    public PostServiceImpl(PostRepository postRepository, TagRepository tagRepository) {
+    public PostServiceImpl(PostRepository postRepository) {
         this.postRepository = postRepository;
-        this.tagRepository = tagRepository;
     }
      /*
       it is considered good practice for methods that use other methods
@@ -154,58 +150,6 @@ public class PostServiceImpl implements PostService {
             post.setLikesCount(Math.max(0, post.getLikesCount() - 1));
             postRepository.save(post);
         }
-    }
-
-    /* ========================= TAG WRITE METHODS ========================= */
-    @Override
-    @Transactional
-    public void addTagsToPost(Long postId, User currentUser, List<String> tagNames) {
-        Post post = getPostOrThrow(postId);
-        ensureUserCanModifyPost(currentUser, post);
-
-        if (tagNames == null || tagNames.isEmpty()) {
-            return;
-        }
-
-        for (String rawName : tagNames) {
-            if (rawName == null || rawName.isBlank()) continue;
-
-            String normalized = rawName.trim().toLowerCase();
-
-            Tag tag = tagRepository.findByName(normalized)
-                    .orElseGet(() -> {
-                        Tag t = new Tag();
-                        t.setName(normalized);
-                        return tagRepository.save(t);
-                    });
-
-            post.getTags().add(tag);
-        }
-
-        postRepository.save(post);
-    }
-
-    @Override
-    @Transactional
-    public void removeTagFromPost(Long postId, User currentUser, String tagName) {
-        Post post = getPostOrThrow(postId);
-        ensureUserCanModifyPost(currentUser, post);
-
-        if (tagName == null || tagName.isBlank()) return;
-
-        String normalized = tagName.trim().toLowerCase();
-        post.getTags().removeIf(tag -> tag.getName().equals(normalized));
-
-        postRepository.save(post);
-    }
-
-    /* ========================= TAG READ METHOD ========================= */
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<Post> findByTag(String tagName, int limit) {
-        String normalized = tagName == null ? "" : tagName.trim().toLowerCase();
-        return trimToLimit(postRepository.findPostsByTagName(normalized), limit);
     }
 
     /* ========================= HELPER METHODS ========================= */

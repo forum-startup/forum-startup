@@ -8,7 +8,6 @@ import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
-import org.example.forumstartup.repositories.TagRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +16,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.parameters.P;
 
 import java.util.HashSet;
 import java.util.List;

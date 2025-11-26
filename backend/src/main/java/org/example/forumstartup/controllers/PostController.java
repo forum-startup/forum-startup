@@ -64,16 +64,6 @@ public class PostController {
         return ResponseEntity.ok(toDtoList(service.search(query, limit)));
     }
 
-    @GetMapping("/public/posts/by-tag/{tagName}")
-    @Operation(summary = "Get posts by tag")
-    @ApiResponse(responseCode = "200", description = "Posts returned")
-    public ResponseEntity<List<PostResponseDto>> getByTag(
-            @PathVariable String tagName,
-            @RequestParam(defaultValue = "10") int limit
-    ) {
-        return ResponseEntity.ok(toDtoList(service.findByTag(tagName, limit)));
-    }
-
 // ===================== PRIVATE READ ENDPOINTS =====================
 
     @Operation(
@@ -171,29 +161,4 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    // ===================== PRIVATE TAG ENDPOINTS =====================
-
-    @PostMapping("/private/posts/{postId}/tags")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @Operation(summary = "Add tags to a post")
-    public ResponseEntity<Void> addTags(
-            @PathVariable long postId,
-            @Valid @RequestBody AddTagsDto dto
-    ) {
-        User currentUser = authenticationUtils.getAuthenticatedUser();
-        service.addTagsToPost(postId, currentUser, dto.tags());
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping("/private/posts/{postId}/tags")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    @Operation(summary = "Remove a tag from a post")
-    public ResponseEntity<Void> removeTag(
-            @PathVariable long postId,
-            @Valid @RequestBody RemoveTagDto dto
-    ) {
-        User currentUser = authenticationUtils.getAuthenticatedUser();
-        service.removeTagFromPost(postId, currentUser, dto.tag());
-        return ResponseEntity.noContent().build();
-    }
 }
