@@ -69,7 +69,7 @@ public class PostController {
 // ===================== PRIVATE READ ENDPOINTS =====================
 
     @Operation(
-            summary = "Get post by ID (private)",
+            summary = "Get post by ID ",
             description = "Only authenticated users can view posts."
     )
     @ApiResponse(responseCode = "200", description = "Post returned successfully")
@@ -83,7 +83,7 @@ public class PostController {
     }
 
     @Operation(
-            summary = "Get posts by author (private)",
+            summary = "Get posts by author ",
             description = "Only authenticated users can view posts by a specific user."
     )
     @GetMapping("/private/posts/by-author/{creatorId}")
@@ -100,9 +100,13 @@ public class PostController {
 
     // ===================== PRIVATE WRITE ENDPOINTS =====================
 
+    @Operation(summary = "Create a new post",
+            description = "Only authenticated users can create posts.")
+    @ApiResponse(responseCode = "201", description = "Post created")
+    @ApiResponse(responseCode = "400", description = "Invalid request")
+    @ApiResponse(responseCode = "401", description = "Unauthorized")
     @PostMapping("/private/posts")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Create a post")
     public ResponseEntity<PostResponseDto> create(
             @Valid @RequestBody PostCreateDto dto
     ) {
@@ -111,9 +115,17 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.toDto(created));
     }
 
+    @Operation(
+            summary = "Edit a post",
+            description = "Post owner or an admin can edit a post."
+    )
+    @ApiResponse(responseCode = "200", description = "Post updated successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request body")
+    @ApiResponse(responseCode = "401", description = "Unauthorized – missing or invalid token")
+    @ApiResponse(responseCode = "403", description = "Forbidden – you are neither the owner nor an admin")
+    @ApiResponse(responseCode = "404", description = "Post not found")
     @PutMapping("/private/posts/{postId}")
-    @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Edit a post")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<PostResponseDto> edit(
             @PathVariable long postId,
             @Valid @RequestBody PostUpdateDto dto
@@ -123,9 +135,16 @@ public class PostController {
         return ResponseEntity.ok(postMapper.toDto(updated));
     }
 
+    @Operation(
+            summary = "Delete a post you own",
+            description = "Only the post owner can delete their post. Admins must use the admin delete endpoint."
+    )
+    @ApiResponse(responseCode = "204", description = "Post deleted successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized – missing or invalid token")
+    @ApiResponse(responseCode = "403", description = "Forbidden – Only the owner may delete this post")
+    @ApiResponse(responseCode = "404", description = "Post not found")
     @DeleteMapping("/private/posts/{postId}")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Delete a post you own")
     public ResponseEntity<Void> delete(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.delete(postId, currentUser);
@@ -134,18 +153,29 @@ public class PostController {
 
     // ===================== PRIVATE LIKE ENDPOINTS =====================
 
+    @Operation(
+            summary = "Like a post",
+            description = "Authenticated users can like a post. A user cannot like the same post more than once."
+    )
+    @ApiResponse(responseCode = "204", description = "Post liked successfully")
+    @ApiResponse(responseCode = "401", description = "Unauthorized – missing or invalid token")
+    @ApiResponse(responseCode = "404", description = "Post not found")
     @PostMapping("/private/posts/{postId}/likes")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Like a post")
     public ResponseEntity<Void> like(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.like(postId, currentUser);
         return ResponseEntity.noContent().build();
     }
-
+    @Operation(
+            summary = "Unlike a post",
+            description = "Authenticated users can remove their like from a post."
+    )
+    @ApiResponse(responseCode = "204", description = "Like removed")
+    @ApiResponse(responseCode = "401", description = "Unauthorized – missing or invalid token")
+    @ApiResponse(responseCode = "404", description = "Post not found")
     @DeleteMapping("/private/posts/{postId}/likes")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Unlike a post")
     public ResponseEntity<Void> unlike(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.unlike(postId, currentUser);
@@ -154,9 +184,16 @@ public class PostController {
 
     // ===================== ADMIN WRITE ENDPOINTS =====================
 
+    @Operation(
+            summary = "Admin deletes any post",
+            description = "Admins can delete any post regardless of ownership."
+    )
+    @ApiResponse(responseCode = "204", description = "Post deleted")
+    @ApiResponse(responseCode = "401", description = "Unauthorized – missing or invalid token")
+    @ApiResponse(responseCode = "403", description = "Forbidden – only admins can access this endpoint")
+    @ApiResponse(responseCode = "404", description = "Post not found")
     @DeleteMapping("/admin/posts/{postId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Admin deletes any post")
     public ResponseEntity<Void> adminDelete(@PathVariable long postId) {
         User admin = authenticationUtils.getAuthenticatedUser();
         service.adminDelete(postId, admin);
@@ -165,7 +202,12 @@ public class PostController {
 
     // ================= TAG OPERATIONS =================
 
-    // Public: browse posts by tag
+    @Operation(
+            summary = "Get posts by tag",
+            description = "Returns a list of posts that have the specified tag. "
+    )
+    @ApiResponse(responseCode = "200", description = "Posts returned successfully")
+    @ApiResponse(responseCode = "404", description = "Tag not found")
     @GetMapping("/public/posts/by-tag/{tagName}")
     public ResponseEntity<List<PostResponseDto>> getPostsByTag(
             @PathVariable String tagName,
@@ -176,7 +218,15 @@ public class PostController {
         );
     }
 
-    // USER or ADMIN: Add tags to a post
+    @Operation(
+            summary = "Add tags to a post",
+            description = "Post owner or an admin can attach one or more tags to the post."
+    )
+    @ApiResponse(responseCode = "204", description = "Tags added successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request body")
+    @ApiResponse(responseCode = "401", description = "Unauthorized – missing or invalid token")
+    @ApiResponse(responseCode = "403", description = "Forbidden – only owner or admin may modify tags")
+    @ApiResponse(responseCode = "404", description = "Post not found")
     @PostMapping("/private/posts/{postId}/tags")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Void> addTags(
@@ -188,7 +238,15 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    // USER or ADMIN: Remove a tag from a post
+    @Operation(
+            summary = "Remove a tag from a post",
+            description = "Post owner or admin can remove a specific tag from the post."
+    )
+    @ApiResponse(responseCode = "204", description = "Tag removed")
+    @ApiResponse(responseCode = "400", description = "Invalid request body")
+    @ApiResponse(responseCode = "401", description = "Unauthorized – missing or invalid token")
+    @ApiResponse(responseCode = "403", description = "Forbidden – only owner or admin may remove tags")
+    @ApiResponse(responseCode = "404", description = "Post or tag not found")
     @DeleteMapping("/private/posts/{postId}/tags")
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     public ResponseEntity<Void> removeTag(
