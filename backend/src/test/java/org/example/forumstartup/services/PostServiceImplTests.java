@@ -161,13 +161,12 @@ public class PostServiceImplTests {
         creator.setId(1L);
         creator.setBlocked(false);
         creator.setRoles(Set.of(role));
-        String title = "Hi";
-        String content = "How we doing?";
+        Post post = new Post("Hi", "How we doing?");
 
         when(postRepository.save(any(Post.class))).thenReturn(basePost);
 
         //Act
-        Post created = postService.create(creator, title, content);
+        Post created = postService.create(post, creator);
 
         //Assert
         assertEquals(1L, created.getId());
@@ -192,12 +191,15 @@ public class PostServiceImplTests {
         post.setCreator(owner);
         post.setContent("old text");
         post.setTitle("old title");
-
+        Post updatePost = new Post(
+                "new title",
+                "new text"
+        );
         when(postRepository.findById(99L)).thenReturn(Optional.of(post));
         when(postRepository.save(any(Post.class))).thenReturn(post);
 
         //Act
-        Post updated = postService.edit(99L, owner, "new title", "new text");
+        Post updated = postService.edit(99L, updatePost, owner);
 
         //Assert
         assertEquals(owner, updated.getCreator());
@@ -225,12 +227,15 @@ public class PostServiceImplTests {
         post.setContent("old text");
         post.setTitle("old title");
         post.setCreator(owner);
-
+        Post updatePost = new Post(
+                "new title",
+                "new text"
+        );
         when(postRepository.findById(99L)).thenReturn(Optional.of(post));
 
         //Assert
         assertThrows(AuthorizationException.class,
-                () -> postService.edit(99L, notOwner, "old title", "old text"));
+                () -> postService.edit(99L, updatePost, notOwner));
         verify(postRepository).findById(99L);
     }
 

@@ -1,5 +1,6 @@
 package org.example.forumstartup.services;
 
+import org.example.forumstartup.dtos.post.PostResponseDto;
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
@@ -9,6 +10,7 @@ import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
 import org.example.forumstartup.repositories.TagRepository;
+import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,13 +75,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public Post create(User currentUser, String title, String content) {
-
+    public Post create(Post post, User currentUser) {
         ensureNotBlocked(currentUser);
-        Post post = new Post();
+
         post.setCreator(currentUser);
-        post.setTitle(title != null ? title.trim() : null);
-        post.setContent(content != null ? content.trim() : null);
         post.setLikesCount(0);
 
         return postRepository.save(post);
@@ -87,14 +86,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public Post edit(Long postId, User currentUser,
-                     String titleToUpdate, String contentToUpdate) {
+    public Post edit(Long postId, Post updatePost, User currentUser) {
 
         Post post = getPostOrThrow(postId);
         ensureUserCanModifyPost(currentUser, post);
 
-        if (titleToUpdate != null) post.setTitle(titleToUpdate.trim());
-        if (contentToUpdate != null) post.setContent(contentToUpdate.trim());
+        if (updatePost.getTitle() != null) post.setTitle(updatePost.getTitle().trim());
+        if (updatePost.getContent() != null) post.setContent(updatePost.getContent().trim());
 
         return postRepository.save(post);
     }
@@ -164,38 +162,6 @@ public class PostServiceImpl implements PostService {
      * therefore the service layer must still enforce these rules independently.
      */
 
-    private boolean isAdmin(User user) {
-        for (Role role : user.getRoles()) {
-            if (role.getName().equals(ERole.ROLE_ADMIN)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void ensureNotBlocked(User user) {
-        if (user.isBlocked()) {
-            throw new AuthorizationException("Blocked users cannot perform this action.");
-        }
-    }
-
-    private Post getPostOrThrow(Long id) {
-        return postRepository.findById(id)
-                .orElseThrow(() ->
-                        new EntityNotFoundException("Post", "id", id.toString()));
-    }
-
-    private void ensureUserCanModifyPost(User currentUser, Post post) {
-
-        ensureNotBlocked(currentUser);
-        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
-        boolean isAdmin = isAdmin(currentUser);
-
-        if (!isOwner && !isAdmin) {
-            throw new AuthorizationException("You are not allowed to modify this post.");
-        }
-    }
-
     @Override
     @Transactional
     public void addTagsToPost(Long postId, User currentUser, List<String> tagNames) {
@@ -232,5 +198,37 @@ public class PostServiceImpl implements PostService {
     public List<Post> findByTag(String tagName, int limit) {
         Tag tag = tagService.getByName(tagName); // normalized + validated
         return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
+    }
+
+    private boolean isAdmin(User user) {
+        for (Role role : user.getRoles()) {
+            if (role.getName().equals(ERole.ROLE_ADMIN)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void ensureNotBlocked(User user) {
+        if (user.isBlocked()) {
+            throw new AuthorizationException("Blocked users cannot perform this action.");
+        }
+    }
+
+    private Post getPostOrThrow(Long id) {
+        return postRepository.findById(id)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Post", "id", id.toString()));
+    }
+
+    private void ensureUserCanModifyPost(User currentUser, Post post) {
+
+        ensureNotBlocked(currentUser);
+        boolean isOwner = post.getCreator().getId().equals(currentUser.getId());
+        boolean isAdmin = isAdmin(currentUser);
+
+        if (!isOwner && !isAdmin) {
+            throw new AuthorizationException("You are not allowed to modify this post.");
+        }
     }
 }

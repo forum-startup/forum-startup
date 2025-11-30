@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.post.PostCreateDto;
 import org.example.forumstartup.dtos.post.PostResponseDto;
 import org.example.forumstartup.dtos.post.PostUpdateDto;
+import org.example.forumstartup.dtos.post.PostWithLikeStatusResponseDto;
 import org.example.forumstartup.dtos.tags.AddTagsDto;
 import org.example.forumstartup.dtos.tags.RemoveTagDto;
 import org.example.forumstartup.mappers.PostMapper;
@@ -41,7 +42,9 @@ public class PostController {
     public ResponseEntity<List<PostResponseDto>> getRecent(
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(postMapper.toDtoList(service.mostRecent(limit)));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toSimpleDtoList(service.mostRecent(limit)));
     }
 
     @GetMapping("/public/posts/top-commented")
@@ -49,7 +52,9 @@ public class PostController {
     public ResponseEntity<List<PostResponseDto>> topCommented(
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(postMapper.toDtoList(service.topCommented(limit)));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toSimpleDtoList(service.topCommented(limit)));
     }
 
     @GetMapping("/public/posts/search")
@@ -58,7 +63,9 @@ public class PostController {
             @RequestParam(name = "word") String query,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(postMapper.toDtoList(service.search(query, limit)));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toSimpleDtoList(service.search(query, limit)));
     }
 
 // ===================== PRIVATE READ ENDPOINTS =====================
@@ -70,11 +77,14 @@ public class PostController {
     @ApiResponse(responseCode = "200", description = "Post returned successfully")
     @ApiResponse(responseCode = "404", description = "Post not found")
     @GetMapping("/private/posts/{postId}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ResponseEntity<PostResponseDto> getById(@PathVariable long postId) {
-        authenticationUtils.getAuthenticatedUser();
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<PostWithLikeStatusResponseDto> getById(@PathVariable long postId) {
+        User actingUser = authenticationUtils.getAuthenticatedUser();
         Post post = service.getById(postId);
-        return ResponseEntity.ok(postMapper.toDto(post));
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toAuthenticatedDto(post, actingUser));
     }
 
     @Operation(
@@ -82,15 +92,16 @@ public class PostController {
             description = "Only authenticated users can view posts by a specific user."
     )
     @GetMapping("/private/posts/by-author/{creatorId}")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
-    public ResponseEntity<List<PostResponseDto>> getByCreatorId(
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<PostWithLikeStatusResponseDto>> getByCreatorId(
             @PathVariable long creatorId,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        authenticationUtils.getAuthenticatedUser(); // ensures logged-in
-        return ResponseEntity.ok(
-                postMapper.toDtoList(service.findByCreatorId(creatorId, limit))
-        );
+        User actingUser = authenticationUtils.getAuthenticatedUser();
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toAuthenticatedDtoList(service.findByCreatorId(creatorId, limit), actingUser));
     }
 
     // ===================== PRIVATE WRITE ENDPOINTS =====================
@@ -98,24 +109,28 @@ public class PostController {
     @PostMapping("/private/posts")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Create a post")
-    public ResponseEntity<PostResponseDto> create(
-            @Valid @RequestBody PostCreateDto dto
-    ) {
+    public ResponseEntity<PostWithLikeStatusResponseDto> create(@Valid @RequestBody PostCreateDto dto) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
-        Post created = service.create(currentUser, dto.title(), dto.content());
-        return ResponseEntity.status(HttpStatus.CREATED).body(postMapper.toDto(created));
+        Post created = service.create(postMapper.toPost(dto), currentUser);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(postMapper.toAuthenticatedDto(created, currentUser));
     }
 
     @PutMapping("/private/posts/{postId}")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Edit a post")
-    public ResponseEntity<PostResponseDto> edit(
+    public ResponseEntity<PostWithLikeStatusResponseDto> edit(
             @PathVariable long postId,
             @Valid @RequestBody PostUpdateDto dto
     ) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
-        Post updated = service.edit(postId, currentUser, dto.title(), dto.content());
-        return ResponseEntity.ok(postMapper.toDto(updated));
+        Post updated = service.edit(postId, postMapper.toPostWhenUpdate(dto), currentUser);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toAuthenticatedDto(updated, currentUser));
     }
 
     @DeleteMapping("/private/posts/{postId}")
@@ -124,7 +139,10 @@ public class PostController {
     public ResponseEntity<Void> delete(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.delete(postId, currentUser);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     // ===================== PRIVATE LIKE ENDPOINTS =====================
@@ -135,7 +153,10 @@ public class PostController {
     public ResponseEntity<Void> like(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.like(postId, currentUser);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     @PostMapping("/private/posts/{postId}/unlike")
@@ -144,7 +165,10 @@ public class PostController {
     public ResponseEntity<Void> unlike(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.unlike(postId, currentUser);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     // ===================== ADMIN WRITE ENDPOINTS =====================
@@ -155,44 +179,52 @@ public class PostController {
     public ResponseEntity<Void> adminDelete(@PathVariable long postId) {
         User admin = authenticationUtils.getAuthenticatedUser();
         service.adminDelete(postId, admin);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     // ================= TAG OPERATIONS =================
 
-    // Public: browse posts by tag
-    @GetMapping("/public/posts/by-tag/{tagName}")
-    public ResponseEntity<List<PostResponseDto>> getPostsByTag(
+    @GetMapping("/private/posts/by-tag/{tagName}")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<PostWithLikeStatusResponseDto>> getPostsByTag(
             @PathVariable String tagName,
             @RequestParam(defaultValue = "10") int limit
     ) {
-        return ResponseEntity.ok(
-                postMapper.toDtoList(service.findByTag(tagName, limit))
-        );
+        User actingUser = authenticationUtils.getAuthenticatedUser();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toAuthenticatedDtoList(service.findByTag(tagName, limit), actingUser));
     }
 
-    // USER or ADMIN: Add tags to a post
     @PostMapping("/private/posts/{postId}/tags")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<Void> addTags(
             @PathVariable long postId,
             @RequestBody @Valid AddTagsDto dto
     ) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.addTagsToPost(postId, currentUser, dto.tags());
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
-    // USER or ADMIN: Remove a tag from a post
     @DeleteMapping("/private/posts/{postId}/tags")
-    @PreAuthorize("hasAnyRole('USER','ADMIN')")
+    @PreAuthorize("hasAnyRole('USER')")
     public ResponseEntity<Void> removeTag(
             @PathVariable long postId,
             @RequestBody RemoveTagDto dto
     ) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.removeTagFromPost(postId, currentUser, dto.tag());
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
 }

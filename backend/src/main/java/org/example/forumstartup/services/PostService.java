@@ -7,9 +7,9 @@ import java.util.List;
 
 public interface PostService {
 
-    Post create(User currentUser, String title, String content);
+    Post create(Post post, User currentUser);
 
-    Post edit(Long postId, User currentUser, String titleToUpdate, String contentToUpdate);
+    Post edit(Long postId, Post post, User currentUser);
 
     void delete(Long postId, User currentUser);
 
