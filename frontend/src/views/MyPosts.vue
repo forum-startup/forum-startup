@@ -72,7 +72,9 @@ async function remove(postId) {
           <li v-for="post in posts" :key="post.postId" class="hover:bg-white/5 transition">
             <div class="px-8 py-6 flex items-center justify-between">
               <!-- Left: Post Info -->
-              <div class="flex items-center gap-5">
+              <router-link
+                  :to="{ name: 'Post', params: { postId: post.postId } }"
+                  class="flex items-center gap-5">
                 <!-- Details -->
                 <div>
                   <div class="flex items-center gap-3">
@@ -86,7 +88,7 @@ async function remove(postId) {
                     <span>{{ post.likesCount || 0 }} Fix this! comments</span>
                   </div>
                 </div>
-              </div>
+              </router-link>
 
               <div class="flex items-center gap-3 w-auto">
                 <router-link

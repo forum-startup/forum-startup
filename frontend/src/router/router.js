@@ -1,13 +1,17 @@
 import {createRouter, createWebHistory} from "vue-router";
 import Home from "../views/Home.vue";
-import Profile from "../views/Profile.vue";
+import MyProfile from "../views/MyProfile.vue";
 import Login from "../views/Login.vue";
-import {isLoggedIn, hasRole} from "../utils/auth";
 import Register from "../views/Register.vue";
 import SharePost from "../views/SharePost.vue";
 import Users from "../views/Users.vue";
 import MyPosts from "../views/MyPosts.vue";
 import EditPost from "../views/EditPost.vue";
+import Post from "../views/Post.vue";
+import UserProfile from "../views/UserProfile.vue";
+import {useAuth} from "../utils/useAuth.js";
+
+const {isLoggedIn, hasRole} = useAuth()
 
 const routes = [
     {
@@ -31,14 +35,7 @@ const routes = [
     {
         path: "/profile",
         name: "Profile",
-        component: Profile,
-        meta: {requiresAuth: true}
-    },
-
-    {
-        path: "/share",
-        name: "SharePost",
-        component: SharePost,
+        component: MyProfile,
         meta: {requiresAuth: true}
     },
 
@@ -50,6 +47,13 @@ const routes = [
     },
 
     {
+        path: "/users/:userId",
+        name: "UserProfile",
+        component: UserProfile,
+        meta: {requiresAuth: true}
+    },
+
+    {
         path: "/my-posts",
         name: "MyPosts",
         component: MyPosts,
@@ -57,9 +61,23 @@ const routes = [
     },
 
     {
+        path: "/share",
+        name: "SharePost",
+        component: SharePost,
+        meta: {requiresAuth: true}
+    },
+
+    {
         path: "/my-posts/:postId/edit",
         name: "EditPost",
         component: EditPost,
+        meta: {requiresAuth: true}
+    },
+
+    {
+        path: "/posts/:postId",
+        name: "Post",
+        component: Post,
         meta: {requiresAuth: true}
     },
 ]

@@ -3,15 +3,15 @@ import {computed, ref} from 'vue'
 import {onClickOutside} from '@vueuse/core'
 import {useRouter} from 'vue-router'
 import {currentUser, userLoading} from '../utils/store.js'
-import {hasRoleReactive} from "../utils/auth.js";
-import {logout} from '../utils/auth.js'
 import logo from '../assets/startup-logo-white.png'
+import {useAuth} from "../utils/useAuth.js";
 
 // Reactive state
 const isProfileOpen = ref(false)
 const dropdownRef = ref(null)
 const router = useRouter()
 const isAdmin = computed(() => hasRoleReactive('ROLE_ADMIN'))
+const {hasRoleReactive, logout} = useAuth()
 
 // Close dropdown when clicking outside
 onClickOutside(dropdownRef, () => (isProfileOpen.value = false))
@@ -19,7 +19,7 @@ onClickOutside(dropdownRef, () => (isProfileOpen.value = false))
 async function handleLogout() {
   await logout()
   isProfileOpen.value = false
-  router.push('/')
+  await router.push('/')
 }
 </script>
 
@@ -73,7 +73,7 @@ async function handleLogout() {
 
         <!-- Authenticated User -->
         <div v-else ref="dropdownRef" class="relative">
-          <!-- Profile Button -->
+          <!-- MyProfile Button -->
           <button
               @click="isProfileOpen = !isProfileOpen"
               class="flex items-center gap-3 rounded-xl bg-gray-700/70 px-4 py-2.5

@@ -1,7 +1,7 @@
-import {fetchCurrentUser} from "./auth.js";
 import {currentUser, userLoading} from "./store.js";
+import {useAuth} from "./useAuth.js";
 
-
+const {fetchCurrentUser} = useAuth()
 export async function initializeApp() {
     try {
         currentUser.value = await fetchCurrentUser()

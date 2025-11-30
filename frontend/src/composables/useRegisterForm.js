@@ -1,8 +1,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../utils/axios.js'
-import { fetchCurrentUser } from '../utils/auth.js'
-import { currentUser } from '../utils/store.js'
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

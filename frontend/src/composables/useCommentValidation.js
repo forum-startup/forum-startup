@@ -1,21 +1,14 @@
-import { ref } from 'vue'
+import {ref} from "vue";
 
-export function usePostValidation(post) {
+export function useCommentValidation(comment) {
     const errors = ref({})
 
     const rules = {
-        title: (v) => {
-            const len = v?.trim().length || 0
-            if (!v?.trim()) return 'Title is required'
-            if (len < 16) return 'Title must be at least 16 characters'
-            if (len > 64) return 'Title cannot exceed 64 characters'
-            return true
-        },
         content: (v) => {
             const len = v?.trim().length || 0
             if (!v?.trim()) return 'Content is required'
-            if (len < 32) return 'Content must be at least 32 characters'
-            if (len > 8192) return 'Content cannot exceed 8192 characters'
+            if (len < 1) return 'Comment must be at least 1 character'
+            if (len > 1000) return 'Comment cannot exceed 1000 characters'
             return true
         },
     }
@@ -25,7 +18,7 @@ export function usePostValidation(post) {
         let isValid = true
 
         Object.keys(rules).forEach((key) => {
-            const value = post.value[key]
+            const value = comment.value[key]
             const result = rules[key](value)
             if (result !== true) {
                 errors.value[key] = result
