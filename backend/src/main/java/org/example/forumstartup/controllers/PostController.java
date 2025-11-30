@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.post.PostCreateDto;
 import org.example.forumstartup.dtos.post.PostResponseDto;
 import org.example.forumstartup.dtos.post.PostUpdateDto;
@@ -23,21 +24,17 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:5173")
+@RequiredArgsConstructor
+@CrossOrigin(
+        origins = "http://localhost:5173",
+        allowCredentials = "true"
+)
 @Tag(name = "Posts", description = "Operations related to forum posts")
 public class PostController {
 
     private final PostService service;
     private final AuthenticationUtils authenticationUtils;
     private final PostMapper postMapper;
-
-    public PostController(PostService service, AuthenticationUtils authenticationUtils, PostMapper postMapper) {
-        this.service = service;
-        this.authenticationUtils = authenticationUtils;
-        this.postMapper = postMapper;
-    }
-
-    // ===================== PUBLIC READ ENDPOINTS =====================
 
     @GetMapping("/public/posts/recent")
     @Operation(summary = "Get most recent posts")
@@ -132,7 +129,7 @@ public class PostController {
 
     // ===================== PRIVATE LIKE ENDPOINTS =====================
 
-    @PostMapping("/private/posts/{postId}/likes")
+    @PostMapping("/private/posts/{postId}/like")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Like a post")
     public ResponseEntity<Void> like(@PathVariable long postId) {
@@ -141,7 +138,7 @@ public class PostController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/private/posts/{postId}/likes")
+    @PostMapping("/private/posts/{postId}/unlike")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Unlike a post")
     public ResponseEntity<Void> unlike(@PathVariable long postId) {
