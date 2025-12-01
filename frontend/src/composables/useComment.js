@@ -40,7 +40,6 @@ export function useComment() {
 
             const res = await api.post(`/private/posts/${form.value.postId}/comments`, payload)
 
-            // Reset form after success
             form.value.content = ''
             form.value.parentId = null
 
@@ -53,8 +52,39 @@ export function useComment() {
         }
     }
 
+    async function editComment(commentId) {
+        clearErrors()
 
-    // DELETE (user)
+        if (!validate()) return false
+
+        if (!form.value.postId) {
+            error.value = 'Post ID is missing'
+            return false
+        }
+
+        isLoading.value = true
+        error.value = null
+
+        isLoading.value = true
+        try {
+            const payload = {
+                content: form.value.content.trim(),
+            }
+
+            const res = await api.put(`/private/comments/${commentId}`, payload)
+
+            form.value.content = ''
+            form.value.parentId = null
+
+            return res.data
+        } catch (err) {
+            error.value = err.response?.data?.message || 'Failed to edit comment'
+            return false
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     async function deleteComment(commentId) {
         isLoading.value = true
         try {
@@ -68,7 +98,6 @@ export function useComment() {
         }
     }
 
-    // DELETE (admin)
     async function adminDeleteComment(commentId) {
         isLoading.value = true
         try {
@@ -81,40 +110,6 @@ export function useComment() {
             isLoading.value = false
         }
     }
-
-    // async function deleteComment(commentId) {
-    //     clearErrors()
-    //
-    //     isLoading.value = true
-    //     error.value = null
-    //
-    //     try {
-    //         await api.delete(`/private/comments/${commentId}`)
-    //         return true
-    //     } catch (err) {
-    //         error.value = err.response?.data?.message || 'Failed to delete comment'
-    //         return false
-    //     } finally {
-    //         isLoading.value = false
-    //     }
-    // }
-    //
-    // async function adminDeleteComment(commentId) {
-    //     clearErrors()
-    //
-    //     isLoading.value = true
-    //     error.value = null
-    //
-    //     try {
-    //         await api.delete(`/admin/comments/${commentId}`)
-    //         return true
-    //     } catch (err) {
-    //         error.value = err.response?.data?.message || 'Failed to delete comment'
-    //         return false
-    //     } finally {
-    //         isLoading.value = false
-    //     }
-    // }
 
     // Helpers
     function startReply(postId, parentId) {
@@ -145,7 +140,9 @@ export function useComment() {
         error,
         errors,
         createComment,
+        editComment,
         deleteComment,
+        adminDeleteComment,
         startReply,
         cancelReply,
     }

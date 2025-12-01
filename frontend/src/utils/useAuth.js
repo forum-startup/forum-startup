@@ -7,30 +7,26 @@ export function useAuth() {
     const form = ref({
         username: '',
         password: ''
-    })
+    });
 
-    const error = ref("")
+    const error = ref("");
 
     async function login() {
         try {
-            error.value = ""
-            await api.post("public/auth/login", form.value)
+            error.value = "";
+            await api.post("public/auth/login", form.value);
 
-            currentUser.value = await fetchCurrentUser()
+            currentUser.value = await fetchCurrentUser();
 
-            await router.push("/")
+            await router.push("/");
         } catch (e) {
             const details = e?.response?.data?.details;
-
-            if (details === "User is blocked") {
-                error.value = "Your account has been blocked most likely due to violation of our terms of use."
-                return
-            }
-            error.value = "Invalid credentials."
+            error.value = details === "User is blocked"
+                ? "Your account has been blocked due to violation of our terms of use."
+                : "Invalid credentials.";
         }
     }
 
-// Fetch current logged-in user based on cookie
     async function fetchCurrentUser() {
         try {
             const res = await api.get("/private/auth/me");
@@ -40,29 +36,11 @@ export function useAuth() {
         }
     }
 
-// Fetch user by id
-    async function fetchUserById(id) {
-        try {
-            const res = await api.get("/private/auth/me");
-            return res.data;
-        } catch (err) {
-            return null;
-        }
+    function isLoggedIn() {
+        return !!currentUser.value;
     }
 
-    async function isLoggedIn() {
-        return (await fetchCurrentUser()) !== null;
-    }
-
-    async function hasRole(requiredRoles) {
-        const user = await fetchCurrentUser();
-        if (!user) return false;
-        const userRoles = user.roles?.map(r => r.name) || [];
-        return requiredRoles.some(role => userRoles.includes(role));
-    }
-
-// Client-side reactive check
-    function hasRoleReactive(requiredRoles) {
+    function hasRole(requiredRoles) {
         if (!currentUser.value) return false;
         const userRoles = currentUser.value.roles?.map(r => r.name) || [];
         return Array.isArray(requiredRoles)
@@ -74,9 +52,11 @@ export function useAuth() {
         try {
             await api.post('/private/auth/logout');
         } catch (err) {
-            console.warn('Logout endpoint failed, but clearing client state anyway', err);
+            console.warn('Logout endpoint failed, clearing client state anyway', err);
         } finally {
             currentUser.value = null;
+            await router.push("/");
+            router.go(0);
         }
     }
 
@@ -84,10 +64,9 @@ export function useAuth() {
         error,
         form,
         login,
-        fetchCurrentUser,
-        fetchUserById,
-        isLoggedIn,
-        hasRoleReactive,
         logout,
-    }
+        fetchCurrentUser,
+        isLoggedIn,
+        hasRole,
+    };
 }

@@ -9,9 +9,7 @@ import MyPosts from "../views/MyPosts.vue";
 import EditPost from "../views/EditPost.vue";
 import Post from "../views/Post.vue";
 import UserProfile from "../views/UserProfile.vue";
-import {useAuth} from "../utils/useAuth.js";
-
-const {isLoggedIn, hasRole} = useAuth()
+import {currentUser} from "../utils/store.js";
 
 const routes = [
     {
@@ -87,16 +85,22 @@ const router = createRouter({
     routes,
 });
 
-router.beforeEach(async (to) => {
-    if (to.meta.requiresAuth) {
-        const logged = await isLoggedIn();
-        if (!logged) return "/login";
+router.beforeEach((to, from, next) => {
+    const isAuthenticated = !!currentUser.value;
+
+    if (to.meta.requiresAuth && !isAuthenticated) {
+        return next("/login");
     }
 
-    if (to.meta.roles) {
-        const allowed = await hasRole(to.meta.roles);
-        if (!allowed) return "/";
+    if (to.meta.roles && isAuthenticated) {
+        const userRoles = currentUser.value.roles?.map(r => r.name) || [];
+        const hasRequiredRole = to.meta.roles.some(role => userRoles.includes(role));
+        if (!hasRequiredRole) {
+            return next("/");
+        }
     }
+
+    next();
 });
 
 export default router;

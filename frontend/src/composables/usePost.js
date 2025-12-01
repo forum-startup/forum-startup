@@ -55,40 +55,43 @@ export function usePost() {
     }
 
     async function likePost(postId) {
-        clearErrors()
-
-        if (!post.value?.postId) return false
-
-        isLoading.value = true
-        error.value = null
-
         try {
             await api.post(`/private/posts/${postId}/like`)
             return true
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to like post'
             return false
-        } finally {
-            isLoading.value = false
         }
     }
 
     async function unlikePost(postId) {
-        clearErrors()
-
-        if (!post.value?.postId) return false
-
-        isLoading.value = true
-        error.value = null
-
         try {
             await api.post(`/private/posts/${postId}/unlike`)
             return true
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to unlike post'
             return false
-        } finally {
-            isLoading.value = false
+        }
+    }
+
+    async function toggleLike(postFromList) {
+        if (!currentUser.value) return
+
+        const wasLiked = postFromList.likedByCurrentUser
+
+        postFromList.likedByCurrentUser = !wasLiked
+        postFromList.likesCount += wasLiked ? -1 : 1
+
+        try {
+            if (wasLiked) {
+                await unlikePost(postFromList.postId)
+            } else {
+                await likePost(postFromList.postId)
+            }
+        } catch (err) {
+            postFromList.likedByCurrentUser = wasLiked
+            postFromList.likesCount += wasLiked ? 1 : -1
+            console.error("Like toggle failed:", err)
         }
     }
 
@@ -123,29 +126,6 @@ export function usePost() {
         }
     }
 
-    async function toggleLike(post) {
-        if (!currentUser.value) return
-
-        const wasLiked = post.isLiked
-
-        // Optimistic update
-        post.isLiked = !wasLiked
-        post.likesCount += wasLiked ? -1 : 1
-
-        try {
-            if (wasLiked) {
-                await unlikePost(post.postId)
-            } else {
-                await likePost(post.postId)
-            }
-        } catch (error) {
-            // Revert on failure
-            post.isLiked = wasLiked
-            post.likesCount += wasLiked ? 1 : -1
-            console.error("Like failed:", error)
-        }
-    }
-
     return {
         post,
         isLoading,
@@ -154,8 +134,6 @@ export function usePost() {
         serverError: error,
         fetchPostById,
         updatePost,
-        likePost,
-        unlikePost,
         deletePostById,
         adminDeletePostById,
         toggleLike

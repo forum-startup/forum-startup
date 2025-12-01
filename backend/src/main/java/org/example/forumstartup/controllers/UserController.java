@@ -11,6 +11,7 @@ import org.example.forumstartup.models.User;
 import org.example.forumstartup.services.UserService;
 import org.example.forumstartup.mappers.UserMapper;
 import org.example.forumstartup.utils.AuthenticationUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +54,9 @@ public class UserController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> deleteSelf() {
         userService.deleteSelf();
-        return ResponseEntity.noContent().build();
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
     /* ------------------------- Admin part ------------------------- */

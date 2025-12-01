@@ -42,6 +42,25 @@ export function usePosts() {
         }
     }
 
+    async function fetchAllPosts() {
+        if (!currentUser.value?.id) {
+            errors.value = 'You must be logged in'
+            return
+        }
+
+        isLoading.value = true
+        errors.value = null
+
+        try {
+            const res = await api.get(`/private/posts`)
+            posts.value = res.data
+        } catch (err) {
+            errors.value = err.response?.data?.message || 'Failed to load posts'
+        } finally {
+            isLoading.value = false
+        }
+    }
+
     async function fetchPostsByUserId(id) {
         if (!id) return
 
@@ -64,6 +83,7 @@ export function usePosts() {
         errors,
         fetchRecentPosts,
         fetchCurrentUserPosts,
+        fetchAllPosts,
         fetchPostsByUserId,
     }
 }

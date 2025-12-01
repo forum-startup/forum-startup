@@ -6,14 +6,12 @@ import {currentUser, userLoading} from '../utils/store.js'
 import logo from '../assets/startup-logo-white.png'
 import {useAuth} from "../utils/useAuth.js";
 
-// Reactive state
 const isProfileOpen = ref(false)
 const dropdownRef = ref(null)
 const router = useRouter()
-const isAdmin = computed(() => hasRoleReactive('ROLE_ADMIN'))
-const {hasRoleReactive, logout} = useAuth()
+const isAdmin = computed(() => hasRole('ROLE_ADMIN'))
+const {hasRole, logout} = useAuth()
 
-// Close dropdown when clicking outside
 onClickOutside(dropdownRef, () => (isProfileOpen.value = false))
 
 async function handleLogout() {

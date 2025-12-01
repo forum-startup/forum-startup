@@ -84,6 +84,10 @@ watch(postId, loadData)
           </div>
         </header>
 
+        <div>
+          <hr class="my-12 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
+        </div>
+
         <!-- Content -->
         <div class="bg-white/5 backdrop-blur-xl rounded-3xl p-10 border border-white/10 shadow-2xl">
           <div class="prose prose-invert prose-lg max-w-none">
@@ -104,6 +108,10 @@ watch(postId, loadData)
           </span>
         </div>
       </article>
+
+      <div>
+        <hr class="my-12 h-0.5 border-t-0 bg-neutral-100 dark:bg-white/10" />
+      </div>
 
       <!-- Comments Section -->
       <section class="mt-20">
