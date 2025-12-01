@@ -70,6 +70,17 @@ public class PostController {
 
 // ===================== PRIVATE READ ENDPOINTS =====================
 
+    @Operation(summary = "Get all posts")
+    @GetMapping("/private/posts")
+    @PreAuthorize("hasAnyRole('USER')")
+    public ResponseEntity<List<PostWithLikeStatusResponseDto>> getAll(
+    ) {
+        User actingUser = authenticationUtils.getAuthenticatedUser();
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(postMapper.toAuthenticatedDtoList(service.getAll(), actingUser));
+    }
+
     @Operation(
             summary = "Get post by ID (private)",
             description = "Only authenticated users can view posts."

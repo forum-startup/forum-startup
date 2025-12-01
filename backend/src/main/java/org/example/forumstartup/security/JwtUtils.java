@@ -27,8 +27,8 @@ public class JwtUtils {
     }
 
     public String generateToken(String username, Set<String> roles) {
-        // 5 minutes
-        long expirationMs = 5 * 60 * 1000;
+        // 24 hours
+        long expirationMs = 24 * 60 * 60 * 1000;
 
         return Jwts.builder()
                 .setSubject(username)

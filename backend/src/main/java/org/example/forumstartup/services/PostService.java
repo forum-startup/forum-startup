@@ -29,6 +29,8 @@ public interface PostService {
 
     List<Post> search(String text, int limit);
 
+    List<Post> getAll();
+
     void addTagsToPost(Long postId, User currentUser, List<String> tagNames);
 
     void removeTagFromPost(Long postId, User currentUser, String tagName);

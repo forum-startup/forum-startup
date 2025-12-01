@@ -63,9 +63,9 @@ public class CommentController {
 
     @DeleteMapping("/private/comments/{id}")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> softDelete(@PathVariable Long id) {
         User user = authenticationUtils.getAuthenticatedUser();
-        commentService.deleteComment(id, user);
+        commentService.softDeleteComment(id, user);
         return ResponseEntity.noContent().build();
     }
 
@@ -73,9 +73,9 @@ public class CommentController {
 
     @DeleteMapping("/admin/comments/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> adminDelete(@PathVariable Long id) {
+    public ResponseEntity<Void> adminSoftDelete(@PathVariable Long id) {
         User admin = authenticationUtils.getAuthenticatedUser();
-        commentService.adminDeleteComment(id, admin);
+        commentService.softAdminDeleteComment(id, admin);
         return ResponseEntity.noContent().build();
     }
 

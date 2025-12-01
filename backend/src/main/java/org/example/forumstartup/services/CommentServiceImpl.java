@@ -15,6 +15,8 @@ import org.example.forumstartup.repositories.PostRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.example.forumstartup.utils.StringConstants.*;
@@ -59,14 +61,16 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public void deleteComment(Long commentId, User user) {
+    public void softDeleteComment(Long commentId, User user) {
         ensureNotBlocked(user);
 
         Comment comment = getComment(commentId);
 
         ensureAuthorOrAdmin(comment, user);
 
-        commentRepository.delete(comment);
+        comment.setIsDeleted(true);
+        comment.setDeletedAt(LocalDateTime.now());
+        comment.setDeletedBy(user);
     }
 
     @Override
@@ -110,12 +114,8 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public Comment adminDeleteComment(Long commentId, User admin) {
-        ensureAdmin(admin);
-
-        Comment comment = getComment(commentId);
-        commentRepository.delete(comment);
-        return comment;
+    public void softAdminDeleteComment(Long commentId, User admin) {
+        softDeleteComment(commentId, admin);
     }
 
 

@@ -71,6 +71,12 @@ public class PostServiceImpl implements PostService {
         return trimToLimit(posts, limit);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> getAll() {
+        return postRepository.findAll();
+    }
+
     /* ========================= WRITE METHODS ========================= */
 
     @Override
@@ -130,10 +136,6 @@ public class PostServiceImpl implements PostService {
         ensureNotBlocked(currentUser);
 
         Post post = getPostOrThrow(postId);
-
-        if (post.getCreator().getId().equals(currentUser.getId())) {
-            throw new AuthorizationException("You cannot like your own post");
-        }
 
         if (!post.getLikedBy().contains(currentUser)) {
             post.getLikedBy().add(currentUser);
