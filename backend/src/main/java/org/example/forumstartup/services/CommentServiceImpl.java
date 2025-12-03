@@ -12,6 +12,8 @@ import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.CommentRepository;
 import org.example.forumstartup.repositories.PostRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -118,6 +120,10 @@ public class CommentServiceImpl implements CommentService {
         softDeleteComment(commentId, admin);
     }
 
+    @Override
+    public Page<Comment> listCommentsByPost(Long postId, Pageable pageable) {
+        return commentRepository.findByPostId(postId, pageable);
+    }
 
     // private helpers
     private void ensureNotBlocked(User user) {

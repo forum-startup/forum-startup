@@ -22,7 +22,6 @@ public class TagServiceImpl implements TagService {
     @Transactional
     public Tag findOrCreate(String name) {
         String normalized = normalize(name);
-
         return tagRepository.findByName(normalized)
                 .orElseGet(() -> {
                     Tag newTag = new Tag();

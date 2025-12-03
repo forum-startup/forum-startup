@@ -16,12 +16,18 @@ import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.services.PostService;
 import org.example.forumstartup.utils.AuthenticationUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.example.forumstartup.utils.PageableUtils.parseSort;
 
 @RestController
 @RequestMapping("/api")
@@ -79,13 +85,23 @@ public class PostController {
 
     @Operation(summary = "Get all posts")
     @GetMapping("/private/posts")
-    @PreAuthorize("hasAnyRole('USER')")
-    public ResponseEntity<List<PostWithLikeStatusResponseDto>> getAll(
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<Page<PostWithLikeStatusResponseDto>> filterPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String text,
+            @RequestParam(required = false) String tag
     ) {
-        User actingUser = authenticationUtils.getAuthenticatedUser();
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(postMapper.toAuthenticatedDtoList(service.getAll(), actingUser));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(parseSort(sort)));
+
+        Page<Post> posts = service.filterPosts(username, text, tag, pageable);
+        User current = authenticationUtils.getAuthenticatedUser();
+
+        return ResponseEntity.ok(
+                posts.map(p -> postMapper.toAuthenticatedDto(p, current))
+        );
     }
 
     @Operation(
