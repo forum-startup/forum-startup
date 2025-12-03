@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../utils/axios.js'
 import {usePostValidation} from "./usePostValidation.js";
+import {toast} from "vue3-toastify";
 
 export function useCreatePost() {
     const router = useRouter()
@@ -29,11 +30,16 @@ export function useCreatePost() {
                 content: post.value.content.trim(),
             })
 
-            // Reset post
+            await router.push('/')
+
+            toast.success("Post created successfully!", {
+                autoClose: 3000,
+                position: toast.POSITION.TOP_RIGHT,
+                theme: "dark",
+            })
+
             post.value.title = ''
             post.value.content = ''
-
-            await router.push('/')
         } catch (err) {
             if (err.response?.data?.errors) {
                 error.value = err.response.data.errors
@@ -49,7 +55,7 @@ export function useCreatePost() {
 
     return {
         post,
-        errors,     // client side errors when validating
+        errors,
         serverError: error,
         isLoading,
         createPost,

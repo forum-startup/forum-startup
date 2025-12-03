@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import api from '../utils/axios.js'
 import { currentUser } from '../utils/store'
+import {toast} from "vue3-toastify";
 
 export function useProfile() {
     const loading = ref(false)
@@ -17,7 +18,6 @@ export function useProfile() {
 
     const avatarPreview = ref('')
 
-    // Fallback avatar using username initial
     const getFallbackAvatar = (username) => {
         if (!username) return 'https://ui-avatars.com/api/?name=U&background=6366f1&color=fff&bold=true'
         const initial = username[0].toUpperCase()
@@ -32,7 +32,6 @@ export function useProfile() {
             profile.value = data
             avatarPreview.value = data.profilePhotoUrl || getFallbackAvatar(data.username)
 
-            // Keep your global store in sync
             if (currentUser.value) {
                 Object.assign(currentUser.value, data)
             }
@@ -62,7 +61,11 @@ export function useProfile() {
             profile.value = data
             avatarPreview.value = data.profilePhotoUrl || avatarPreview.value
 
-            alert('Profile updated successfully!')
+            toast.success("Profile updated successfully!", {
+                autoClose: 3000,
+                position: toast.POSITION.TOP_RIGHT,
+                theme: "dark",
+            })
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to update profile'
             throw err

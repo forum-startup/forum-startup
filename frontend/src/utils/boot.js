@@ -1,5 +1,5 @@
 import {currentUser, userLoading} from "./store.js";
-import {useAuth} from "./useAuth.js";
+import {useAuth} from "../composables/useAuth.js";
 
 const {fetchCurrentUser} = useAuth()
 export async function initializeApp() {

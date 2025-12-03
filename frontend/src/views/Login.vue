@@ -1,5 +1,5 @@
 <script setup>
-import {useAuth} from "../utils/useAuth.js";
+import {useAuth} from "../composables/useAuth.js";
 
 const { error, form, login } = useAuth()
 </script>

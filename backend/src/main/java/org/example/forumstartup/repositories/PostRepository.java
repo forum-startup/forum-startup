@@ -36,5 +36,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                         """)
     List<Post> findPostsByTagName(@Param("tagName") String name);
 
-
+    long count();
 }

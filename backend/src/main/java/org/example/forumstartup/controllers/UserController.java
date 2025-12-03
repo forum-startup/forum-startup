@@ -33,6 +33,13 @@ public class UserController {
 
     /* ------------------------- User part ------------------------- */
 
+    @GetMapping("/public/users/count")
+    public ResponseEntity<?> getTotalUserCount() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userService.getTotalUserCount());
+    }
+
     @GetMapping("/private/users/profile")
     public ResponseEntity<?> getProfile() {
         try {

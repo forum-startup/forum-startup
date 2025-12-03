@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted} from 'vue'
 import {useUsers} from '../composables/useUsers.js'
-import {useAuth} from "../utils/useAuth.js";
+import {useAuth} from "../composables/useAuth.js";
 
 const {users, isLoading, isBlocking, error, fetchUsers, blockUser, unblockUser, promoteToAdmin} = useUsers()
 // const {fetchUserById, hasRoleReactive} = useAuth()

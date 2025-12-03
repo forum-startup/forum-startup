@@ -145,5 +145,6 @@ export function useComment() {
         adminDeleteComment,
         startReply,
         cancelReply,
+        canDelete,
     }
 }

@@ -2,8 +2,7 @@
 import { ref, computed } from 'vue'
 import { format } from 'date-fns'
 import CommentForm from './CommentForm.vue'
-import { useComment } from '../composables/useComment'
-import { currentUser } from '../utils/store.js'
+import { useCommentLogic } from '../composables/useCommentLogic'
 
 const props = defineProps({
   comment: { type: Object, required: true },
@@ -19,68 +18,34 @@ const replies = computed(() =>
 )
 
 const showReplyForm = ref(false)
-const isEditing = ref(false)
 const showMenu = ref(false)
 
 const {
-  form,
+  isEditing,
+  canEdit,
+  canDelete,
+  startEdit,
+  cancelEdit,
+  submitEdit,
+  handleDelete,
   isLoading,
-  errors,
-  createComment,
-  editComment,
-  deleteComment,
-  adminDeleteComment
-} = useComment()
+  errors
+} = useCommentLogic(() => props.comment, () => props.allComments, props.postId)
 
-// Permissions
-const isOwnComment = computed(() =>
-    currentUser.value && props.comment.creatorId === currentUser.value.id
-)
+// Dynamic indentation
+const indentClass = computed(() => {
+  const indent = Math.min(props.depth * 12, 60)
+  return `ml-${indent}`
+})
 
-const isAdmin = computed(() =>
-    currentUser.value?.roles?.some(r => r.name === 'ROLE_ADMIN') || false
-)
-
-const canEdit = computed(() => isOwnComment.value && !props.comment.deleted)
-const canDelete = computed(() => (isOwnComment.value || isAdmin.value) && !props.comment.deleted)
-
-// Edit
-function startEdit() {
-  isEditing.value = true
-  form.value.postId = props.postId
-  form.value.content = props.comment.content
-}
-
-function cancelEdit() {
-  isEditing.value = false
-  form.value.content = ''
-}
-
-// Delete
-async function handleDelete() {
-  if (!confirm('Delete this comment?')) return
-
-  const success = isAdmin.value
-      ? await adminDeleteComment(props.comment.id)
-      : await deleteComment(props.comment.id)
-
-  if (success) {
-    showMenu.value = false
-    emit('comment-deleted', props.comment.id)
-  }
-}
-
-// Reply
 function onReplySuccess(newComment) {
   showReplyForm.value = false
-  form.value.content = ''
-  form.value.parentId = null
   emit('comment-updated', newComment)
 }
 </script>
 
 <template>
-  <div class="flex gap-5" :class="{ 'ml-0': depth === 0, 'ml-12': depth > 0 }">
+  <div class="flex gap-5" :class="indentClass">
     <!-- Avatar -->
     <div class="flex-shrink-0">
       <div class="w-11 h-11 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-bold text-lg">
@@ -88,6 +53,7 @@ function onReplySuccess(newComment) {
       </div>
     </div>
 
+    <!-- Comment Body -->
     <div class="flex-1">
       <div class="bg-white/5 backdrop-blur-sm rounded-2xl px-6 py-5 border border-white/10">
         <!-- Header -->
@@ -97,7 +63,6 @@ function onReplySuccess(newComment) {
             <span class="text-xs text-gray-400">
               {{ format(new Date(comment.createdAt), 'MMM d, yyyy • h:mm a') }}
             </span>
-
             <span v-if="comment.deleted" class="text-xs text-gray-500 italic">
               [deleted<template v-if="comment.deletedByUsername"> by @{{ comment.deletedByUsername }}</template>]
             </span>
@@ -105,31 +70,17 @@ function onReplySuccess(newComment) {
 
           <!-- More menu -->
           <div v-if="canEdit || canDelete" class="relative">
-            <button
-                @click.stop="showMenu = !showMenu"
-                class="p-2 rounded-lg hover:bg-white/10 transition"
-            >
+            <button @click.stop="showMenu = !showMenu" class="p-2 rounded-lg hover:bg-white/10 transition">
               <svg class="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
               </svg>
             </button>
 
-            <div
-                v-if="showMenu"
-                @click.stop
-                class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 py-2 z-50"
-            >
-              <button
-                  v-if="canEdit"
-                  @click="startEdit(); showMenu = false"
-                  class="w-full text-left px-5 py-3 text-sm text-gray-300 hover:bg-gray-700"
-              >
+            <div v-if="showMenu" @click.stop class="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-2xl border border-gray-700 py-2 z-50">
+              <button v-if="canEdit" @click="startEdit(); showMenu = false" class="w-full text-left px-5 py-3 text-sm text-gray-300 hover:bg-gray-700">
                 Edit
               </button>
-              <button
-                  @click="handleDelete(); showMenu = false"
-                  class="w-full text-left px-5 py-3 text-sm text-red-400 hover:bg-red-900/20"
-              >
+              <button @click="handleDelete().then(success => success && (showMenu = false) && $emit('comment-deleted', comment.id))" class="w-full text-left px-5 py-3 text-sm text-red-400 hover:bg-red-900/20">
                 Delete
               </button>
             </div>
@@ -138,7 +89,6 @@ function onReplySuccess(newComment) {
 
         <!-- Content -->
         <div v-if="comment.deleted" class="text-gray-500 italic">
-          ">
           [comment deleted]
         </div>
 
@@ -147,42 +97,27 @@ function onReplySuccess(newComment) {
           <textarea
               v-model="form.content"
               rows="3"
-              class="w-full rounded-xl bg-white/10 px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
               placeholder="Edit your comment..."
+              class="w-full rounded-xl bg-white/10 px-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 outline-none resize-none border border-white/10"
           />
           <p v-if="errors.content" class="text-red-400 text-sm mt-1">{{ errors.content }}</p>
 
           <div class="flex gap-3 mt-3">
-            <button
-                @click="async () => {
-                const updated = await editComment(props.comment.id)
-                if (updated) {
-                  isEditing.value = false
-                  emit('comment-updated', updated)
-                }
-              }"
-                :disabled="isLoading"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 text-sm"
-            >
+            <button @click="submitEdit().then(updated => updated && $emit('comment-updated', updated))" :disabled="isLoading" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 disabled:opacity-50 text-sm">
               {{ isLoading ? 'Saving...' : 'Save' }}
             </button>
-            <button @click="cancelEdit" class="text-gray-400 hover:text-white text-sm">
-              Cancel
-            </button>
+            <button @click="cancelEdit" class="text-gray-400 hover:text-white text-sm">Cancel</button>
           </div>
         </div>
 
-        <!-- Normal content -->
+        <!-- Normal Content -->
         <p v-else class="text-gray-100 leading-relaxed">
           {{ comment.content }}
         </p>
 
         <!-- Actions -->
         <div class="flex items-center gap-6 mt-4 text-sm">
-          <button
-              @click="showReplyForm = true"
-              class="text-indigo-400 hover:text-indigo-300 font-medium"
-          >
+          <button @click="showReplyForm = true" class="text-indigo-400 hover:text-indigo-300 font-medium transition">
             Reply
           </button>
           <button class="flex items-center gap-1 text-gray-400 hover:text-red-400">
@@ -190,9 +125,9 @@ function onReplySuccess(newComment) {
           </button>
         </div>
 
-        <!-- REUSABLE REPLY FORM -->
+        <!-- Reply Form -->
         <transition name="fade">
-          <div v-if="showReplyForm" class="mt-6 -mx-6 px-6 pt-4 bg-white/5 rounded-b-2xl">
+          <div v-if="showReplyForm" class="mt-6 -mx-6 px-6 pt-4 bg-white/5 rounded-b-2xl border-t border-white/10">
             <CommentForm
                 :post-id="postId"
                 :parent-id="comment.id"
@@ -204,7 +139,7 @@ function onReplySuccess(newComment) {
         </transition>
       </div>
 
-      <!-- Replies -->
+      <!-- Nested Replies -->
       <div v-if="replies.length" class="mt-8 space-y-8">
         <CommentItem
             v-for="reply in replies"
@@ -222,10 +157,6 @@ function onReplySuccess(newComment) {
 </template>
 
 <style scoped>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.2s;
-}
-.fade-enter-from, .fade-leave-to {
-  opacity: 0;
-}
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
 </style>

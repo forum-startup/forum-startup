@@ -1,5 +1,5 @@
-import api from "./axios.js";
-import {currentUser} from "./store.js";
+import api from "../utils/axios.js";
+import {currentUser} from "../utils/store.js";
 import router from "../router/router.js";
 import {ref} from "vue";
 

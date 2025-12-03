@@ -6,7 +6,6 @@ import {usePost} from "../composables/usePost";
 const route = useRoute()
 const router = useRouter()
 
-// Get postId from URL
 const postId = computed(() => route.params.postId as string)
 
 const {
@@ -18,7 +17,6 @@ const {
   updatePost,
 } = usePost()
 
-// Fetch post when component mounts or postId changes
 onMounted(() => {
   if (postId.value) {
     fetchPostById(postId.value)
@@ -26,16 +24,9 @@ onMounted(() => {
 })
 
 async function onSubmit() {
-  const success = await updatePost()
-
-  if (!success) {
-    return
-  }
-
-  await router.push('/my-posts')
+  await updatePost()
 }
 
-// re-fetch if navigating directly to /my-posts/123/edit
 watch(postId, (newId) => {
   if (newId) fetchPostById(newId)
 })
@@ -51,7 +42,7 @@ watch(postId, (newId) => {
       </div>
 
       <!-- Error -->
-      <div v-else-if="error" class="text-center py-20">
+      <div v-else-if="serverError" class="text-center py-20">
         <p class="text-red-400 font-medium">{{ serverError }}</p>
         <button @click="fetchPostById(postId)" class="mt-4 text-indigo-400 hover:text-indigo-300">
           Try again

@@ -14,10 +14,8 @@ onMounted(() => {
 })
 
 async function remove(postId) {
-  const success = await deletePostById(postId)
-  if(success) {
-    await fetchCurrentUserPosts()
-  }
+  await deletePostById(postId)
+  await fetchCurrentUserPosts()
 }
 
 </script>
@@ -83,9 +81,9 @@ async function remove(postId) {
                   <div class="flex items-center gap-4 mt-2 text-xs text-gray-500">
                     <span>Posted {{ new Date(post.createdAt).toLocaleDateString() }}</span>
                     <span>•</span>
-                    <span>{{ post.likesCount || 0 }} likes</span>
-                    <span>•</span>
-                    <span>{{ post.likesCount || 0 }} Fix this! comments</span>
+                    <span v-if="post.likesCount > 0">
+  {{ post.likesCount }} {{ post.likesCount === 1 ? 'like' : 'likes' }}
+                    </span>
                   </div>
                 </div>
               </router-link>

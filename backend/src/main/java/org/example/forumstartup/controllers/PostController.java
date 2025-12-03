@@ -37,6 +37,13 @@ public class PostController {
     private final AuthenticationUtils authenticationUtils;
     private final PostMapper postMapper;
 
+    @GetMapping("/public/posts/count")
+    public ResponseEntity<?> getTotalUserCount() {
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(service.getTotalPostCount());
+    }
+
     @GetMapping("/public/posts/recent")
     @Operation(summary = "Get most recent posts")
     public ResponseEntity<List<PostResponseDto>> getRecent(

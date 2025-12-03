@@ -38,6 +38,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
+    public Long getTotalPostCount() {
+        return postRepository.count();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Post getById(Long id) {
         return getPostOrThrow(id);
     }

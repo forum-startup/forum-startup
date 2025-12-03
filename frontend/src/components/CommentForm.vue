@@ -1,25 +1,31 @@
 <script setup>
+import { watchEffect } from 'vue'
 import { useComment } from '../composables/useComment'
-import {watchEffect} from "vue";
 
 const props = defineProps({
-  postId: [String, Number]
+  postId: { type: [String, Number], required: true },
+  parentId: { type: [String, Number], default: null },
+  autoFocus: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['commented'])
+const emit = defineEmits(['commented', 'cancel'])
 
-const { form, isLoading, errors, error, createComment, startReply } = useComment()
+const { form, isLoading, errors, error, createComment } = useComment()
 
-// Auto-set postId
+// Sync props → form
 watchEffect(() => {
   form.value.postId = props.postId
+  form.value.parentId = props.parentId || null
 })
 
 async function submit() {
-  const success = await createComment()
-  if (success) {
+  if (!form.value.content.trim()) return
+
+  const newComment = await createComment()
+  if (newComment) {
     form.value.content = ''
-    emit('commented')
+    form.value.parentId = null
+    emit('commented', newComment)
   }
 }
 </script>
@@ -28,19 +34,31 @@ async function submit() {
   <div>
     <textarea
         v-model="form.content"
+        :placeholder="parentId ? 'Write a reply...' : 'Share your thoughts...'"
         rows="4"
-        placeholder="Share your thoughts..."
-        class="w-full rounded-xl bg-white/10 px-5 py-4 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
-    ></textarea>
-    <p v-if="errors.content" class="text-red-400 text-sm mt-2">{{ errors.content }}</p>
-    <p v-if="error" class="text-red-400 text-sm mt-2">{{ error }}</p>
+        class="w-full rounded-xl bg-white/10 px-5 py-4 text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 outline-none resize-none border border-white/10"
+    />
 
-    <button
-        @click="submit"
-        :disabled="isLoading || !form.content.trim()"
-        class="mt-4 px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-50 font-medium"
-    >
-      {{ isLoading ? 'Posting...' : 'Post Comment' }}
-    </button>
+    <div v-if="errors.content || error" class="mt-2 text-red-400 text-sm">
+      {{ errors.content || error }}
+    </div>
+
+    <div class="mt-4 flex justify-between items-center">
+      <button
+          @click="submit"
+          :disabled="isLoading || !form.content.trim()"
+          class="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 disabled:opacity-50 font-medium transition"
+      >
+        {{ isLoading ? 'Posting...' : parentId ? 'Post Reply' : 'Post Comment' }}
+      </button>
+
+      <button
+          v-if="parentId"
+          @click="$emit('cancel')"
+          class="text-gray-400 hover:text-white text-sm font-medium"
+      >
+        Cancel
+      </button>
+    </div>
   </div>
 </template>

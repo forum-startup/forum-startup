@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface PostService {
 
+    Long getTotalPostCount();
+
     Post create(Post post, User currentUser);
 
     Post edit(Long postId, Post post, User currentUser);

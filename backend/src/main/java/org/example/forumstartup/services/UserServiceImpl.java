@@ -34,9 +34,12 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationUtils authenticationUtils;
 
-    /*
-        Not sure what to do with this method (will we be using it anywhere?)
-     */
+    @Override
+    @Transactional(readOnly = true)
+    public Long getTotalUserCount() {
+        return userRepository.count();
+    }
+
     @Override
     @Transactional(readOnly = true)
     public User getUserById(Long id) {

@@ -4,7 +4,7 @@ import {onClickOutside} from '@vueuse/core'
 import {useRouter} from 'vue-router'
 import {currentUser, userLoading} from '../utils/store.js'
 import logo from '../assets/startup-logo-white.png'
-import {useAuth} from "../utils/useAuth.js";
+import {useAuth} from "../composables/useAuth.js";
 
 const isProfileOpen = ref(false)
 const dropdownRef = ref(null)
