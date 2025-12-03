@@ -10,8 +10,12 @@ import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
 import org.example.forumstartup.repositories.TagRepository;
+import org.example.forumstartup.spec.PostSpecs;
 import org.example.forumstartup.utils.AuthenticationUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,6 +159,20 @@ public class PostServiceImpl implements PostService {
             postRepository.save(post);
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<Post> filterPosts(String username, String text, String tag, Pageable pageable) {
+
+        Specification<Post> spec = Specification.allOf(
+                PostSpecs.byUsername(username),
+                PostSpecs.byText(text),
+                PostSpecs.byTag(tag)
+        );
+
+        return postRepository.findAll(spec, pageable);
+    }
+
 
     /* ========================= HELPER METHODS ========================= */
 

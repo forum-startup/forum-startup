@@ -2,6 +2,8 @@ package org.example.forumstartup.services;
 
 import org.example.forumstartup.models.Post;
 import org.example.forumstartup.models.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -36,4 +38,6 @@ public interface PostService {
     void removeTagFromPost(Long postId, User currentUser, String tagName);
 
     List<Post> findByTag(String tagName, int limit);
+
+    Page<Post> filterPosts(String username, String text, String tag, Pageable pageable);
 }
