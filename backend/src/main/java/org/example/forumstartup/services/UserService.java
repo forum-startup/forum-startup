@@ -3,6 +3,8 @@ package org.example.forumstartup.services;
 import org.example.forumstartup.dtos.user.AdminSelfUpdateDto;
 import org.example.forumstartup.dtos.user.UserSelfUpdateDto;
 import org.example.forumstartup.models.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 
@@ -33,4 +35,6 @@ public interface UserService {
     void unblock(Long id);
 
     void promoteToAdmin(Long id);
+
+    Page<User> filterUsers(String username, String email, String firstName, Pageable pageable);
 }

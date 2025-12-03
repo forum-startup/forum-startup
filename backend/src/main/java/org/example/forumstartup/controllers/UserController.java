@@ -11,6 +11,11 @@ import org.example.forumstartup.models.User;
 import org.example.forumstartup.services.UserService;
 import org.example.forumstartup.mappers.UserMapper;
 import org.example.forumstartup.utils.AuthenticationUtils;
+import org.example.forumstartup.utils.PageableUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,46 +74,23 @@ public class UserController {
         return ResponseEntity.ok(dto);
     }
 
-    @GetMapping("/admin/users/username/{username}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponseDtoForAdmin> getUserByUsername(@PathVariable String username) {
-        UserResponseDtoForAdmin dto = mapper.userToResponseDtoForAdmin(
-                userService.getUserByUsername(username)
-        );
-
-        return ResponseEntity.ok(dto);
-    }
-
-    @GetMapping("/admin/users/email/{email}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<UserResponseDtoForAdmin> getUserByEmail(@PathVariable String email) {
-        UserResponseDtoForAdmin dto = mapper.userToResponseDtoForAdmin(
-                userService.getUserByEmail(email)
-        );
-
-        return ResponseEntity.ok(dto);
-    }
-
-    @GetMapping("/admin/users/firstname/{firstName}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponseDtoForAdmin>> searchUsersByFirstName(@PathVariable String firstName) {
-        List<UserResponseDtoForAdmin> dto = userService.searchUsersByFirstName(firstName)
-                .stream()
-                .map(mapper::userToResponseDtoForAdmin)
-                .toList();
-
-        return ResponseEntity.ok(dto);
-    }
-
     @GetMapping("/admin/users")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<UserResponseDtoForAdmin>> getAll() {
-        List<UserResponseDtoForAdmin> dto = userService.getAll()
-                .stream()
-                .map(mapper::userToResponseDtoForAdmin)
-                .toList();
+    public ResponseEntity<Page<UserResponseDtoForAdmin>> filterUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "username,asc") String sort,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String email,
+            @RequestParam(required = false) String firstName
+    ) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(PageableUtils.parseSort(sort)));
 
-        return ResponseEntity.ok(dto);
+        Page<User> users = userService.filterUsers(username, email, firstName, pageable);
+
+        return ResponseEntity.ok(
+                users.map(mapper::userToResponseDtoForAdmin)
+        );
     }
 
     @PutMapping("/admin/update/me")

@@ -12,7 +12,11 @@ import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.RoleRepository;
 import org.example.forumstartup.repositories.UserRepository;
+import org.example.forumstartup.spec.UserSpecs;
 import org.example.forumstartup.utils.AuthenticationUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -236,6 +240,19 @@ public class UserServiceImpl implements UserService {
         targetUser.getRoles().add(adminRole);
 
         userRepository.saveAndFlush(targetUser);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<User> filterUsers(String username, String email, String firstName, Pageable pageable) {
+
+        Specification<User> spec = Specification.allOf(
+                UserSpecs.byUsername(username),
+                UserSpecs.byEmail(email),
+                UserSpecs.byFirstName(firstName)
+        );
+
+        return userRepository.findAll(spec, pageable);
     }
 
     private boolean isDuplicate(User user) {
