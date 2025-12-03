@@ -40,14 +40,4 @@ public class CustomUserDetails implements UserDetails {
     public boolean isAccountNonLocked() {
         return !user.isBlocked();
     }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
 }

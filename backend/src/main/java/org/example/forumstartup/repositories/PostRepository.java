@@ -35,4 +35,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             ORDER BY p.createdAt DESC 
                         """)
     List<Post> findPostsByTagName(@Param("tagName") String name);
+
+
 }

@@ -1,10 +1,10 @@
 <script setup>
 import {onMounted, ref} from 'vue'
 import { useProfile } from '../composables/useProfile'
-import { useAuth } from '../composables/useAuth'
+import {useUsers} from "../composables/useUsers.js";
 
 const { profile, avatarPreview, loading, error, loadProfile, updateProfile, handleAvatarChange } = useProfile()
-const { deleteAccount } = useAuth()
+const { deleteAccount } = useUsers()
 
 const newPassword = ref('')
 

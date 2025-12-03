@@ -18,9 +18,13 @@ public class CommentMapper {
                 c.getPost().getId(),
                 c.getCreator().getId(),
                 c.getCreator().getUsername(),
-                c.getContent(),
+                c.getIsDeleted() ? null : c.getContent(),  // hide content when deleted
                 c.getParent() != null ? c.getParent().getId() : null,
                 c.getLikesCount(),
+                c.getIsDeleted(),
+                c.getDeletedAt(),
+                c.getDeletedBy() != null ? c.getDeletedBy().getId() : null,
+                c.getDeletedBy() != null ? c.getDeletedBy().getUsername() : null,
                 c.getCreatedAt(),
                 c.getUpdatedAt()
         );

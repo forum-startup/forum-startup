@@ -1,10 +1,8 @@
-import {useRouter} from "vue-router";
 import {ref} from "vue";
 import api from "../utils/axios.js";
+import router from "../router/router.js";
 
 export function useUsers() {
-    const router = useRouter()
-
     const users = ref([])
     const isLoading = ref(false)
     const isBlocking = ref(new Set()) // tracks which users are being blocked/unblocked
@@ -78,6 +76,20 @@ export function useUsers() {
         }
     }
 
+    const deleteAccount = async () => {
+        error.value = null
+
+        if (!confirm('Delete your account permanently? This cannot be undone.')) return
+
+        try {
+            await api.delete('/private/users/me')
+            await logout()
+            await router.push('/')
+        } catch (err) {
+            error.value = err.response?.data?.message || 'Failed to delete account'
+        }
+    }
+
     return {
         users,
         isLoading,
@@ -87,7 +99,8 @@ export function useUsers() {
         fetchUserById,
         blockUser,
         unblockUser,
-        promoteToAdmin
+        promoteToAdmin,
+        deleteAccount
     }
 
 }

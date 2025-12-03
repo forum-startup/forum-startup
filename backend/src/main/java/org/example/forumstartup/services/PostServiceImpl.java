@@ -1,5 +1,6 @@
 package org.example.forumstartup.services;
 
+import org.example.forumstartup.dtos.post.PostResponseDto;
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
@@ -8,6 +9,8 @@ import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
+import org.example.forumstartup.repositories.TagRepository;
+import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,17 +71,20 @@ public class PostServiceImpl implements PostService {
         return trimToLimit(posts, limit);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<Post> getAll() {
+        return postRepository.findAll();
+    }
+
     /* ========================= WRITE METHODS ========================= */
 
     @Override
     @Transactional
-    public Post create(User currentUser, String title, String content) {
-
+    public Post create(Post post, User currentUser) {
         ensureNotBlocked(currentUser);
-        Post post = new Post();
+
         post.setCreator(currentUser);
-        post.setTitle(title != null ? title.trim() : null);
-        post.setContent(content != null ? content.trim() : null);
         post.setLikesCount(0);
 
         return postRepository.save(post);
@@ -86,14 +92,13 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional
-    public Post edit(Long postId, User currentUser,
-                     String titleToUpdate, String contentToUpdate) {
+    public Post edit(Long postId, Post updatePost, User currentUser) {
 
         Post post = getPostOrThrow(postId);
         ensureUserCanModifyPost(currentUser, post);
 
-        if (titleToUpdate != null) post.setTitle(titleToUpdate.trim());
-        if (contentToUpdate != null) post.setContent(contentToUpdate.trim());
+        if (updatePost.getTitle() != null) post.setTitle(updatePost.getTitle().trim());
+        if (updatePost.getContent() != null) post.setContent(updatePost.getContent().trim());
 
         return postRepository.save(post);
     }
@@ -132,10 +137,6 @@ public class PostServiceImpl implements PostService {
 
         Post post = getPostOrThrow(postId);
 
-        if (post.getCreator().getId().equals(currentUser.getId())) {
-            throw new AuthorizationException("You cannot like your own post");
-        }
-
         if (!post.getLikedBy().contains(currentUser)) {
             post.getLikedBy().add(currentUser);
             post.setLikesCount(post.getLikesCount() + 1);
@@ -154,7 +155,15 @@ public class PostServiceImpl implements PostService {
             postRepository.save(post);
         }
     }
-    /* ========================= TAG OPERATIONS ========================= */
+
+    /* ========================= HELPER METHODS ========================= */
+
+    /*
+     * Spring Security protects the web layer, but it does not know the business rules:
+     * who owns posts, who can edit, like, comment, or manage tags,
+     * therefore the service layer must still enforce these rules independently.
+     */
+
     @Override
     @Transactional
     public void addTagsToPost(Long postId, User currentUser, List<String> tagNames) {
@@ -193,14 +202,6 @@ public class PostServiceImpl implements PostService {
         return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
     }
 
-    /* ========================= HELPER METHODS ========================= */
-
-    /*
-     * Spring Security protects the web layer, but it does not know the business rules:
-     * who owns posts, who can edit, like, comment, or manage tags,
-     * therefore the service layer must still enforce these rules independently.
-     */
-
     private boolean isAdmin(User user) {
         for (Role role : user.getRoles()) {
             if (role.getName().equals(ERole.ROLE_ADMIN)) {
@@ -232,5 +233,4 @@ public class PostServiceImpl implements PostService {
             throw new AuthorizationException("You are not allowed to modify this post.");
         }
     }
-
 }

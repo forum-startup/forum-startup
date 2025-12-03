@@ -1,30 +1,7 @@
 <script setup>
-import { ref } from "vue";
-import api from "../utils/axios.js";
-import router from "../router/router.js";
-import { currentUser } from "../utils/store.js";
-import { fetchCurrentUser } from "../utils/auth.js";
+import {useAuth} from "../utils/useAuth.js";
 
-const form = ref({
-  username: '',
-  password: ''
-})
-
-const error = ref("")
-
-async function login() {
-  try {
-    error.value = ""
-    await api.post("public/auth/login",  form.value )
-
-    // set current user
-    currentUser.value = await fetchCurrentUser()
-
-    await router.push("/")
-  } catch (e) {
-    error.value = "Invalid credentials."
-  }
-}
+const { error, form, login } = useAuth()
 </script>
 
 <template>

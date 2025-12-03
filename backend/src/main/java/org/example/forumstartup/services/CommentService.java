@@ -13,7 +13,7 @@ public interface CommentService {
 
     Comment updateComment(Long commentId, User user, UpdateCommentDto dto);
 
-    void deleteComment(Long commentId, User user);
+    void softDeleteComment(Long commentId, User user);
 
     List<Comment> listCommentsByPost(Long postId);
 
@@ -21,5 +21,5 @@ public interface CommentService {
 
     Comment unlikeComment(Long commentId, User user);
 
-    Comment adminDeleteComment(Long commentId, User admin);
+    void softAdminDeleteComment(Long commentId, User admin);
 }

@@ -56,6 +56,16 @@ public class Comment {
     )
     private Set<User> likedBy = new HashSet<>();
 
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted = false;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @ManyToOne
+    @JoinColumn(name = "deleted_by")
+    private User deletedBy;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

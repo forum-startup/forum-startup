@@ -1,10 +1,10 @@
 <script setup>
-import {computed, onMounted} from 'vue'
+import { onMounted} from 'vue'
 import {useUsers} from '../composables/useUsers.js'
-import {fetchUserById, hasRoleReactive} from "../utils/auth.js";
+import {useAuth} from "../utils/useAuth.js";
 
 const {users, isLoading, isBlocking, error, fetchUsers, blockUser, unblockUser, promoteToAdmin} = useUsers()
-// const isAdmin = computed(() => hasRoleReactive('ROLE_ADMIN'))
+// const {fetchUserById, hasRoleReactive} = useAuth()
 
 onMounted(fetchUsers)
 </script>

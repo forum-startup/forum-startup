@@ -15,6 +15,12 @@ public record CommentResponseDto(
         String content,
         Long parentId,
         Integer likesCount,
+
+        Boolean deleted,
+        LocalDateTime deletedAt,
+        Long deletedById,
+        String deletedByUsername,
+
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) { }

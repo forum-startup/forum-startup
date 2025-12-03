@@ -3,23 +3,21 @@ import {computed, ref} from 'vue'
 import {onClickOutside} from '@vueuse/core'
 import {useRouter} from 'vue-router'
 import {currentUser, userLoading} from '../utils/store.js'
-import {hasRoleReactive} from "../utils/auth.js";
-import {logout} from '../utils/auth.js'
 import logo from '../assets/startup-logo-white.png'
+import {useAuth} from "../utils/useAuth.js";
 
-// Reactive state
 const isProfileOpen = ref(false)
 const dropdownRef = ref(null)
 const router = useRouter()
-const isAdmin = computed(() => hasRoleReactive('ROLE_ADMIN'))
+const isAdmin = computed(() => hasRole('ROLE_ADMIN'))
+const {hasRole, logout} = useAuth()
 
-// Close dropdown when clicking outside
 onClickOutside(dropdownRef, () => (isProfileOpen.value = false))
 
 async function handleLogout() {
   await logout()
   isProfileOpen.value = false
-  router.push('/')
+  await router.push('/')
 }
 </script>
 
@@ -37,7 +35,7 @@ async function handleLogout() {
       <div class="hidden lg:flex lg:items-center lg:gap-x-10">
         <router-link
             v-if="currentUser"
-            to="/post"
+            to="/share"
             class="text-sm font-medium text-white hover:text-indigo-400 transition"
         >
           Share your story
@@ -73,7 +71,7 @@ async function handleLogout() {
 
         <!-- Authenticated User -->
         <div v-else ref="dropdownRef" class="relative">
-          <!-- Profile Button -->
+          <!-- MyProfile Button -->
           <button
               @click="isProfileOpen = !isProfileOpen"
               class="flex items-center gap-3 rounded-xl bg-gray-700/70 px-4 py-2.5
@@ -131,7 +129,7 @@ async function handleLogout() {
                   My Account
                 </router-link>
                 <router-link
-                    to="/posts"
+                    to="/my-posts"
                     @click="isProfileOpen = false"
                     class="block px-5 py-3 text-sm text-gray-300 hover:bg-gray-700/70 hover:text-white transition"
                     role="menuitem"

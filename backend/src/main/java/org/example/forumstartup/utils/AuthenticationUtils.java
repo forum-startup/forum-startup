@@ -21,4 +21,12 @@ public class AuthenticationUtils {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User", "username", username));
     }
+
+    public User getAuthenticatedUserOrNull() {
+        try {
+            return getAuthenticatedUser();
+        } catch (Exception e) {
+            return null; // not logged in
+        }
+    }
 }
