@@ -38,5 +38,5 @@ public interface UserService {
 
     void promoteToAdmin(Long id);
 
-    Page<User> filterUsers(String username, String email, String firstName, Pageable pageable);
+    Page<User> filterUsers(String stringQuery, Pageable pageable);
 }

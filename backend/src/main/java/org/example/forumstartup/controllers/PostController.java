@@ -90,13 +90,11 @@ public class PostController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt,desc") String sort,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String text,
-            @RequestParam(required = false) String tag
+            @RequestParam(required = false) String searchQuery
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(parseSort(sort)));
 
-        Page<Post> posts = service.filterPosts(username, text, tag, pageable);
+        Page<Post> posts = service.filterPosts(searchQuery, pageable);
         User current = authenticationUtils.getAuthenticatedUser();
 
         return ResponseEntity.ok(

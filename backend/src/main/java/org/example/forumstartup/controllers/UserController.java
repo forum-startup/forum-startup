@@ -87,13 +87,11 @@ public class UserController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "username,asc") String sort,
-            @RequestParam(required = false) String username,
-            @RequestParam(required = false) String email,
-            @RequestParam(required = false) String firstName
+            @RequestParam(required = false) String searchQuery
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(PageableUtils.parseSort(sort)));
 
-        Page<User> users = userService.filterUsers(username, email, firstName, pageable);
+        Page<User> users = userService.filterUsers(searchQuery, pageable);
 
         return ResponseEntity.ok(
                 users.map(mapper::userToResponseDtoForAdmin)

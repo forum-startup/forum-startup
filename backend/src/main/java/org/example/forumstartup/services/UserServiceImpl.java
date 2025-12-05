@@ -247,13 +247,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<User> filterUsers(String username, String email, String firstName, Pageable pageable) {
+    public Page<User> filterUsers(String searchQuery, Pageable pageable) {
 
-        Specification<User> spec = Specification.allOf(
-                UserSpecs.byUsername(username),
-                UserSpecs.byEmail(email),
-                UserSpecs.byFirstName(firstName)
-        );
+        Specification<User> spec = UserSpecs.matchesAny(searchQuery);
 
         return userRepository.findAll(spec, pageable);
     }

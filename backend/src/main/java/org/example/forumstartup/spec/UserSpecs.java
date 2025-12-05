@@ -5,24 +5,18 @@ import org.springframework.data.jpa.domain.Specification;
 
 public class UserSpecs {
 
-    public static Specification<User> byUsername(String username) {
-        return (root, query, cb) ->
-                username == null || username.isBlank() ?
-                        null :
-                        cb.like(cb.lower(root.get("username")), "%" + username.toLowerCase() + "%");
-    }
+    public static Specification<User> matchesAny(String value) {
+        return (root, query, cb) -> {
+            if (value == null || value.isBlank())
+                return null;
 
-    public static Specification<User> byEmail(String email) {
-        return (root, query, cb) ->
-                email == null || email.isBlank() ?
-                        null :
-                        cb.like(cb.lower(root.get("email")), "%" + email.toLowerCase() + "%");
-    }
+            String pattern = "%" + value.toLowerCase() + "%";
 
-    public static Specification<User> byFirstName(String firstName) {
-        return (root, query, cb) ->
-                firstName == null || firstName.isBlank() ?
-                        null :
-                        cb.like(cb.lower(root.get("firstName")), "%" + firstName.toLowerCase() + "%");
+            return cb.or(
+                    cb.like(cb.lower(root.get("username")), pattern),
+                    cb.like(cb.lower(root.get("firstName")), pattern),
+                    cb.like(cb.lower(root.get("email")), pattern)
+            );
+        };
     }
 }

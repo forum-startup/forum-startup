@@ -1,6 +1,6 @@
 package org.example.forumstartup.services;
 
-import org.example.forumstartup.dtos.post.PostResponseDto;
+import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.enums.ERole;
 import org.example.forumstartup.exceptions.AuthorizationException;
 import org.example.forumstartup.exceptions.EntityNotFoundException;
@@ -9,9 +9,7 @@ import org.example.forumstartup.models.Role;
 import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
 import org.example.forumstartup.repositories.PostRepository;
-import org.example.forumstartup.repositories.TagRepository;
 import org.example.forumstartup.spec.PostSpecs;
-import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,19 +22,11 @@ import java.util.List;
 import static org.example.forumstartup.utils.ListUtils.trimToLimit;
 
 @Service
+@RequiredArgsConstructor
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final TagService tagService;
-
-    public PostServiceImpl(PostRepository postRepository, TagService tagService) {
-        this.postRepository = postRepository;
-        this.tagService = tagService;
-    }
-     /*
-      it is considered good practice for methods that use other methods
-        to be below (parent-child like structure)
-     */
 
     /* ========================= READ METHODS ========================= */
 
@@ -122,10 +112,6 @@ public class PostServiceImpl implements PostService {
         postRepository.delete(post);
     }
 
-    /*
-     * Admin-only delete. Controller enforces @PreAuthorize,
-     * but service still checks for safety.
-     */
     @Override
     @Transactional
     public void adminDelete(Long postId, User adminUser) {
@@ -168,25 +154,12 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<Post> filterPosts(String username, String text, String tag, Pageable pageable) {
+    public Page<Post> filterPosts(String searchQuery, Pageable pageable) {
 
-        Specification<Post> spec = Specification.allOf(
-                PostSpecs.byUsername(username),
-                PostSpecs.byText(text),
-                PostSpecs.byTag(tag)
-        );
+        Specification<Post> spec = PostSpecs.matchesAny(searchQuery);
 
         return postRepository.findAll(spec, pageable);
     }
-
-
-    /* ========================= HELPER METHODS ========================= */
-
-    /*
-     * Spring Security protects the web layer, but it does not know the business rules:
-     * who owns posts, who can edit, like, comment, or manage tags,
-     * therefore the service layer must still enforce these rules independently.
-     */
 
     @Override
     @Transactional
@@ -225,6 +198,8 @@ public class PostServiceImpl implements PostService {
         Tag tag = tagService.getByName(tagName); // normalized + validated
         return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
     }
+
+    /* ========================= HELPER METHODS ========================= */
 
     private boolean isAdmin(User user) {
         for (Role role : user.getRoles()) {

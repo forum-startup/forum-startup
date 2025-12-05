@@ -41,5 +41,5 @@ public interface PostService {
 
     List<Post> findByTag(String tagName, int limit);
 
-    Page<Post> filterPosts(String username, String text, String tag, Pageable pageable);
+    Page<Post> filterPosts(String searchQuery, Pageable pageable);
 }
