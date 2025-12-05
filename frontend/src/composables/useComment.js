@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import api from '../utils/axios.js'
 import { useCommentValidation } from './useCommentValidation'
 import { currentUser } from '../utils/store.js'
+import {toast} from "vue3-toastify";
 
 export function useComment() {
     const form = ref({
@@ -40,6 +41,12 @@ export function useComment() {
 
             const res = await api.post(`/private/posts/${form.value.postId}/comments`, payload)
 
+            toast.success("You posted a comment!", {
+                autoClose: 3000,
+                position: toast.POSITION.TOP_RIGHT,
+                theme: "dark",
+            })
+
             form.value.content = ''
             form.value.parentId = null
 
@@ -73,6 +80,12 @@ export function useComment() {
 
             const res = await api.put(`/private/comments/${commentId}`, payload)
 
+            toast.success("Comment edited!", {
+                autoClose: 3000,
+                position: toast.POSITION.TOP_RIGHT,
+                theme: "dark",
+            })
+
             form.value.content = ''
             form.value.parentId = null
 
@@ -89,6 +102,13 @@ export function useComment() {
         isLoading.value = true
         try {
             await api.delete(`/private/comments/${commentId}`)
+
+            toast.success("Comment deleted!", {
+                autoClose: 3000,
+                position: toast.POSITION.TOP_RIGHT,
+                theme: "dark",
+            })
+
             return true
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to delete'
@@ -102,6 +122,13 @@ export function useComment() {
         isLoading.value = true
         try {
             await api.delete(`/admin/comments/${commentId}`)
+
+            toast.success("Comment deleted! Keep the community safe!", {
+                autoClose: 3000,
+                position: toast.POSITION.TOP_RIGHT,
+                theme: "dark",
+            })
+
             return true
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to delete'

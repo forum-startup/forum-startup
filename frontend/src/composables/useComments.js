@@ -7,7 +7,12 @@ export function useComments() {
     const isLoading = ref(false)
     const errors = ref(null)
 
-    async function fetchCommentsByPostId(postId) {
+    async function fetchCommentsByPostId(
+        postId,
+        page = 0,
+        size = 10,
+        sort = undefined,
+    ) {
         if (!currentUser.value?.id) {
             errors.value = 'You must be logged in'
             return
@@ -17,8 +22,16 @@ export function useComments() {
         errors.value = null
 
         try {
-            const res = await api.get(`/private/posts/${postId}/comments`)
-            comments.value = res.data
+            const params = Object.fromEntries(
+                Object.entries({ page, size, sort })
+                    .filter(([_, v]) => v !== undefined)
+            );
+
+            const res = await api.get(
+                `/private/posts/${postId}/comments`,
+                {params}
+            )
+            comments.value = res.data.content
         } catch (err) {
             errors.value = err.response?.data?.message || 'Failed to load comments'
         } finally {
@@ -26,9 +39,19 @@ export function useComments() {
         }
     }
 
+
+
     function addComment(newComment) {
         comments.value.push(newComment)
         comments.value.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    }
+
+    function updateComment(updatedComment) {
+        const index = comments.value.findIndex(c => c.id === updatedComment.id)
+        if (index !== -1) {
+            comments.value[index] = updatedComment
+            comments.value = [...comments.value]
+        }
     }
 
     function removeComment(commentId) {
@@ -41,6 +64,7 @@ export function useComments() {
         errors,
         fetchCommentsByPostId,
         addComment,
+        updateComment,
         removeComment,
     }
 }

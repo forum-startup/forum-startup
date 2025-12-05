@@ -50,5 +50,6 @@ export function useCommentLogic(comment, allComments, postId) {
         handleDelete,
         isLoading,
         errors,
+        form,
     }
 }

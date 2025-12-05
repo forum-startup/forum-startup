@@ -24,13 +24,27 @@ export function useUsers() {
         }
     }
 
-    async function fetchUsers() {
+    async function fetchUsers(
+        page = 0,
+        size = 10,
+        sort = undefined,
+        searchQuery = undefined,
+    ) {
+
         isLoading.value = true
         error.value = null
 
         try {
-            const res = await api.get("/admin/users")
-            users.value = res.data
+            const params = Object.fromEntries(
+                Object.entries({ page, size, sort, searchQuery })
+                    .filter(([_, v]) => v !== undefined)
+            );
+
+            const res = await api.get(
+                "/admin/users",
+                {params}
+            )
+            users.value = res.data.content
         } catch (err) {
             error.value = err.response?.data?.message || 'Failed to load users'
         } finally {
@@ -138,7 +152,6 @@ export function useUsers() {
         count,
         users,
         isLoading,
-        isBlocking: (id) => isBlocking.value.has(id), // helper for button state
         error,
         fetchTotalUserCount,
         fetchUsers,

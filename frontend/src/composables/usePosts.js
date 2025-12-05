@@ -66,7 +66,35 @@ export function usePosts() {
 
         try {
             const res = await api.get(`/private/posts`)
-            posts.value = res.data
+            posts.value = res.data.content
+        } catch (err) {
+            errors.value = err.response?.data?.message || 'Failed to load posts'
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    async function filterPosts(
+        page = 0,
+        size = 10,
+        sort = undefined,
+        searchQuery = undefined,
+    ) {
+
+        isLoading.value = true
+        errors.value = null
+
+        try {
+            const params = Object.fromEntries(
+                Object.entries({ page, size, sort, searchQuery })
+                    .filter(([_, v]) => v !== undefined)
+            );
+
+            const res = await api.get(
+                "/private/posts",
+                {params}
+            )
+            posts.value = res.data.content
         } catch (err) {
             errors.value = err.response?.data?.message || 'Failed to load posts'
         } finally {
@@ -100,5 +128,6 @@ export function usePosts() {
         fetchAllPosts,
         fetchPostsByUserId,
         fetchTotalPostCount,
+        filterPosts,
     }
 }

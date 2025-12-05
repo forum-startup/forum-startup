@@ -15,19 +15,16 @@ const {deletePostById, adminDeletePostById, isOwnPost} = usePost()
 const isAdmin = hasRole('ROLE_ADMIN')
 const showMenu = ref(false)
 
-const {
-  post,
-  isLoading: postLoading,
-  error: postError,
-  fetchPostById,
-  toggleLike,
-} = usePost()
+const {post, isLoading: postLoading, error: postError, fetchPostById, toggleLike} = usePost()
 
 const {
   comments,
   isLoading: commentsLoading,
   error: commentsError,
-  fetchCommentsByPostId
+  fetchCommentsByPostId,
+  addComment,
+  updateComment,
+  removeComment
 } = useComments()
 
 async function loadData() {
@@ -44,6 +41,18 @@ async function handleDelete() {
   } else {
     await adminDeletePostById(postId.value, showMenu)
   }
+}
+
+function onNewComment(newComment) {
+  addComment(newComment)
+}
+
+function onCommentUpdated(updatedComment) {
+  updateComment(updatedComment)
+}
+
+function onCommentDeleted(commentId) {
+  removeComment(commentId)
 }
 
 onMounted(loadData)
@@ -175,13 +184,20 @@ watch(postId, loadData)
       <section class="mt-20">
         <div class="mb-12">
           <h3 class="text-xl font-bold text-white mb-6">Leave a comment</h3>
-          <CommentForm :post-id="postId" @commented="loadData"/>
+          <!-- Top-level comment form -->
+          <CommentForm :post-id="postId" @commented="onNewComment"/>
         </div>
 
         <div class="space-y-10">
-          <!-- Root Comments Only -->
           <template v-for="comment in comments.filter(c => !c.parentId)" :key="comment.id">
-            <CommentItem :comment="comment" :all-comments="comments" :depth="0" :post-id="postId"/>
+            <CommentItem
+                :comment="comment"
+                :all-comments="comments"
+                :depth="0"
+                :post-id="postId"
+                @comment-updated="onCommentUpdated"
+                @comment-deleted="onCommentDeleted"
+            />
           </template>
 
           <!-- No Comments -->

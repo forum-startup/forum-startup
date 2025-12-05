@@ -27,7 +27,7 @@ async function handleLogout() {
 
       <!-- Logo -->
       <router-link to="/" class="flex items-center -m-2 p-2 rounded-lg hover:bg-white/5 transition">
-        <img class="h-9 w-auto" :src="logo" alt="StartUp Logo"/>
+        <img class="h-9 w-auto cursor-pointer" :src="logo" alt="StartUp Logo"/>
         <span class="sr-only">StartUp Home</span>
       </router-link>
 
