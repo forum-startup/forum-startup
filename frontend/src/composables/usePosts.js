@@ -76,7 +76,7 @@ export function usePosts() {
 
     async function filterPosts(
         page = 0,
-        size = 10,
+        size = 12,
         sort = undefined,
         searchQuery = undefined,
     ) {
