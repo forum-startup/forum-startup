@@ -50,15 +50,20 @@ create table posts
 
 create table comments
 (
-    likes_count       int           not null,
+    likes_count       int                  not null,
     comment_id        bigint auto_increment
         primary key,
-    created_at        datetime(6)   not null,
-    parent_comment_id bigint        null,
-    post_id           bigint        not null,
-    updated_at        datetime(6)   null,
-    user_id           bigint        not null,
-    content           varchar(1000) not null,
+    created_at        datetime(6)          not null,
+    parent_comment_id bigint               null,
+    post_id           bigint               not null,
+    updated_at        datetime(6)          null,
+    user_id           bigint               not null,
+    content           varchar(1000)        not null,
+    is_deleted        tinyint(1) default 0 not null,
+    deleted_at        datetime(6)          null,
+    deleted_by        bigint               null,
+    constraint FK59vpjvskq9e0dfbarx7w57n4j
+        foreign key (deleted_by) references users (user_id),
     constraint FK7h839m3lkvhbyv3bcdv7sm4fj
         foreign key (parent_comment_id) references comments (comment_id),
     constraint FK8omq0tc18jd43bu5tjh6jvraq
