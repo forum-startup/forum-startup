@@ -107,7 +107,7 @@ Follow these steps to set up and run the application:
 
 - Now simply open your browser on http://localhost:5173, sign up and become part of our community!
 
-### Web App Demo
+## Web App Demo
 
 ![Demo](./demo/demo.gif)
 
@@ -122,6 +122,7 @@ For further information, please feel free to contact us:
 | ------               | ------    |------ |
 | Ivelin Yanev         | ivelinyanev00@gmail.com     | https://github.com/ivelinyanev  |
 | Martin Dimitrov         | dimitmarto@gmail.com     | https://github.com/marto-dim  |
+| Mihail Angelov        |  mihailangelov@gmail.com    | https://github.com/Misho1089  |
 
 ## License
 
