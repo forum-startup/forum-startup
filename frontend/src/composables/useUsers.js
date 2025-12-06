@@ -16,7 +16,7 @@ export function useUsers() {
 
         try {
             const response = await api.get("/public/users/count")
-            count.value = response.data
+            count.value = response.data.count
         } catch (e) {
             error.value = err.response?.data?.message || 'Failed to load user count'
         } finally {

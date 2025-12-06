@@ -14,7 +14,7 @@ export function useAuth() {
     async function login() {
         try {
             error.value = "";
-            await api.post("public/auth/login", form.value);
+            await api.post("/public/auth/login", form.value);
 
             currentUser.value = await fetchCurrentUser();
 

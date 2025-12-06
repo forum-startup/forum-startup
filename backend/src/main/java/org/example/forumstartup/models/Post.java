@@ -42,7 +42,6 @@ public class Post {
     @Column(name = "likes_count")
     private Integer likesCount = 0;
 
-    // if we want we can create a separate PostLike Entity later
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "post_likes",

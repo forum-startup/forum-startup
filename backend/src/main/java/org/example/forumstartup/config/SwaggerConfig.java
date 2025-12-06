@@ -22,7 +22,4 @@ import org.springframework.context.annotation.Configuration;
         scheme = "bearer",
         bearerFormat = "JWT"
 )
-public class SwaggerConfig {
-
-    // No code because swagger gathers info from layers automatically
-}
+public class SwaggerConfig { }

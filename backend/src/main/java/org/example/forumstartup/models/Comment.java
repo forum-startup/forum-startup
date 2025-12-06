@@ -26,8 +26,6 @@ public class Comment {
     @Column(name = "comment_id")
     private Long id;
 
-    // self-reference for tree-like comment structure
-    // when we have replies on a comment
     @ManyToOne
     @JoinColumn(name = "parent_comment_id")
     private Comment parent;

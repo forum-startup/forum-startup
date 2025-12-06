@@ -1,19 +1,12 @@
 package org.example.forumstartup.mappers;
 
-import org.example.forumstartup.dtos.user.CreateAdminUserDto;
+import org.example.forumstartup.dtos.user.*;
 import org.example.forumstartup.dtos.auth.RegisterUserDto;
-import org.example.forumstartup.dtos.user.ProfileResponseDto;
-import org.example.forumstartup.dtos.user.UserResponseDto;
-import org.example.forumstartup.dtos.user.UserResponseDtoForAdmin;
 import org.example.forumstartup.models.User;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
-
-    /*
-        TODO: think about profile picture insertion
-     */
 
     public User registerDtoToUser(RegisterUserDto dto) {
         return new User(
@@ -65,6 +58,12 @@ public class UserMapper {
                 user.getUsername(),
                 user.getProfilePhotoUrl(),
                 user.getCreatedAt()
+        );
+    }
+
+    public UserTotalCountResponseDto longToUserTotalCountResponseDto(Long count) {
+        return new UserTotalCountResponseDto(
+                count
         );
     }
 }

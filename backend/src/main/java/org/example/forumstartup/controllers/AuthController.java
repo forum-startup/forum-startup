@@ -36,6 +36,8 @@ public class AuthController {
     private final UserMapper mapper;
     private final AuthenticationUtils authenticationUtils;
 
+    /* ------------------------- Public part ------------------------- */
+
     /*
             Passes username/password to UserDetailsService which returns a UserDetails object
             and checks the password against the PasswordEncoder
@@ -59,9 +61,6 @@ public class AuthController {
                 user.getRoles().stream().map(r -> r.getName().name()).collect(Collectors.toSet())
         );
 
-        /*
-            HttpOnly Cookie, sets token inside client cookie
-         */
         ResponseCookie cookie = ResponseCookie.from("jwt", token)
                 .httpOnly(true)
                 .secure(false)
@@ -70,9 +69,6 @@ public class AuthController {
                 .sameSite("Strict")
                 .build();
 
-        /*
-            If login successful, return cookie + username + roles to frontend
-         */
         return ResponseEntity
                 .ok()
                 .header("Set-Cookie", cookie.toString())
@@ -86,13 +82,11 @@ public class AuthController {
         return ResponseEntity.ok(userService.create(user));
     }
 
+    /* ------------------------- Private part ------------------------- */
+
     @PostMapping("private/auth/logout")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<Void> logout(HttpServletResponse response) {
-
-        /*
-            Clear the JWT cookie by setting one that expires immediately
-         */
+    public ResponseEntity<Void> logout() {
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)
                 .secure(false)

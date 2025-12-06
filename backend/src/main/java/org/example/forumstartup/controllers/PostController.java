@@ -41,47 +41,28 @@ public class PostController {
 
     private final PostService service;
     private final AuthenticationUtils authenticationUtils;
-    private final PostMapper postMapper;
+    private final PostMapper mapper;
+
+    /* ------------------------- Public part ------------------------- */
 
     @GetMapping("/public/posts/count")
-    public ResponseEntity<?> getTotalUserCount() {
+    public ResponseEntity<?> getTotalPostCount() {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(service.getTotalPostCount());
+                .body(mapper.longToPostTotalCountResponseDto(service.getTotalPostCount()));
     }
 
     @GetMapping("/public/posts/recent")
     @Operation(summary = "Get most recent posts")
     public ResponseEntity<List<PostResponseDto>> getRecent(
-            @RequestParam(defaultValue = "10") int limit
+            @RequestParam(defaultValue = "12") int limit
     ) {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(postMapper.toSimpleDtoList(service.mostRecent(limit)));
+                .body(mapper.toSimpleDtoList(service.mostRecent(limit)));
     }
 
-    @GetMapping("/public/posts/top-commented")
-    @Operation(summary = "Get most commented posts")
-    public ResponseEntity<List<PostResponseDto>> topCommented(
-            @RequestParam(defaultValue = "10") int limit
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(postMapper.toSimpleDtoList(service.topCommented(limit)));
-    }
-
-    @GetMapping("/public/posts/search")
-    @Operation(summary = "Search posts")
-    public ResponseEntity<List<PostResponseDto>> search(
-            @RequestParam(name = "word") String query,
-            @RequestParam(defaultValue = "10") int limit
-    ) {
-        return ResponseEntity
-                .status(HttpStatus.OK)
-                .body(postMapper.toSimpleDtoList(service.search(query, limit)));
-    }
-
-// ===================== PRIVATE READ ENDPOINTS =====================
+    /* ------------------------- Private part ------------------------- */
 
     @Operation(summary = "Get all posts")
     @GetMapping("/private/posts")
@@ -98,7 +79,7 @@ public class PostController {
         User current = authenticationUtils.getAuthenticatedUser();
 
         return ResponseEntity.ok(
-                posts.map(p -> postMapper.toAuthenticatedDto(p, current))
+                posts.map(p -> mapper.toAuthenticatedDto(p, current))
         );
     }
 
@@ -116,7 +97,7 @@ public class PostController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(postMapper.toAuthenticatedDto(post, actingUser));
+                .body(mapper.toAuthenticatedDto(post, actingUser));
     }
 
     @Operation(
@@ -133,21 +114,19 @@ public class PostController {
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(postMapper.toAuthenticatedDtoList(service.findByCreatorId(creatorId, limit), actingUser));
+                .body(mapper.toAuthenticatedDtoList(service.findByCreatorId(creatorId, limit), actingUser));
     }
-
-    // ===================== PRIVATE WRITE ENDPOINTS =====================
 
     @PostMapping("/private/posts")
     @PreAuthorize("hasRole('USER')")
     @Operation(summary = "Create a post")
     public ResponseEntity<PostWithLikeStatusResponseDto> create(@Valid @RequestBody PostCreateDto dto) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
-        Post created = service.create(postMapper.toPost(dto), currentUser);
+        Post created = service.create(mapper.toPost(dto), currentUser);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(postMapper.toAuthenticatedDto(created, currentUser));
+                .body(mapper.toAuthenticatedDto(created, currentUser));
     }
 
     @PutMapping("/private/posts/{postId}")
@@ -158,11 +137,11 @@ public class PostController {
             @Valid @RequestBody PostUpdateDto dto
     ) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
-        Post updated = service.edit(postId, postMapper.toPostWhenUpdate(dto), currentUser);
+        Post updated = service.edit(postId, mapper.toPostWhenUpdate(dto), currentUser);
 
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(postMapper.toAuthenticatedDto(updated, currentUser));
+                .body(mapper.toAuthenticatedDto(updated, currentUser));
     }
 
     @DeleteMapping("/private/posts/{postId}")
@@ -176,8 +155,6 @@ public class PostController {
                 .status(HttpStatus.NO_CONTENT)
                 .build();
     }
-
-    // ===================== PRIVATE LIKE ENDPOINTS =====================
 
     @PostMapping("/private/posts/{postId}/like")
     @PreAuthorize("hasRole('USER')")
@@ -203,7 +180,7 @@ public class PostController {
                 .build();
     }
 
-    // ===================== ADMIN WRITE ENDPOINTS =====================
+    /* ------------------------- Admin part ------------------------- */
 
     @DeleteMapping("/admin/posts/{postId}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -217,7 +194,7 @@ public class PostController {
                 .build();
     }
 
-    // ================= TAG OPERATIONS =================
+    /* ------------------------- Tag operations ------------------------- */
 
     @GetMapping("/private/posts/by-tag/{tagName}")
     @PreAuthorize("hasAnyRole('USER')")
@@ -228,7 +205,7 @@ public class PostController {
         User actingUser = authenticationUtils.getAuthenticatedUser();
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(postMapper.toAuthenticatedDtoList(service.findByTag(tagName, limit), actingUser));
+                .body(mapper.toAuthenticatedDtoList(service.findByTag(tagName, limit), actingUser));
     }
 
     @PostMapping("/private/posts/{postId}/tags")

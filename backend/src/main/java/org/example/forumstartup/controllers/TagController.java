@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/public/tags")
+@RequestMapping("/api")
 @RequiredArgsConstructor
 @CrossOrigin(
         origins = "http://localhost:5173",
@@ -19,10 +19,12 @@ public class TagController {
 
     private final TagService tagService;
 
+    /* ------------------------- Public part ------------------------- */
+
     /**
      * List all tags alphabetically
      */
-    @GetMapping
+    @GetMapping("/public/tags")
     public ResponseEntity<List<String>> listAllTags() {
         List<String> tags = tagService
                 .getAll()
@@ -34,10 +36,7 @@ public class TagController {
         return ResponseEntity.ok(tags);
     }
 
-    /**
-     * Get a single tag by name (normalized)
-     */
-    @GetMapping("/{tagName}")
+    @GetMapping("/public/tags/{tagName}")
     public ResponseEntity<String> getTagByName(@PathVariable String tagName) {
         Tag tag = tagService.getByName(tagName);
         return ResponseEntity.ok(tag.getName());

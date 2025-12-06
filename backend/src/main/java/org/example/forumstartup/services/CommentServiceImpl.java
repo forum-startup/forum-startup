@@ -17,7 +17,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -125,7 +124,7 @@ public class CommentServiceImpl implements CommentService {
         return commentRepository.findByPostId(postId, pageable);
     }
 
-    // private helpers
+    /* ------------------------- Helpers ------------------------- */
     private void ensureNotBlocked(User user) {
         if (user.isBlocked()) {
             throw new AuthorizationException(BLOCKED_USER_EXCEPTION_MESSAGE);

@@ -16,17 +16,9 @@ public class AuthenticationUtils {
     public User getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        String username = authentication.getName(); // Extracted from JWT automatically
+        String username = authentication.getName();
 
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User", "username", username));
-    }
-
-    public User getAuthenticatedUserOrNull() {
-        try {
-            return getAuthenticatedUser();
-        } catch (Exception e) {
-            return null; // not logged in
-        }
     }
 }

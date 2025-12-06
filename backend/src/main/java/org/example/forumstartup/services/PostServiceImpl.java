@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.example.forumstartup.utils.ListUtils.trimToLimit;
+import static org.example.forumstartup.utils.StringConstants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -27,8 +28,6 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final TagService tagService;
-
-    /* ========================= READ METHODS ========================= */
 
     @Override
     @Transactional(readOnly = true)
@@ -45,7 +44,7 @@ public class PostServiceImpl implements PostService {
     @Override
     @Transactional(readOnly = true)
     public List<Post> mostRecent(int limit) {
-        return trimToLimit(postRepository.findTop10ByOrderByCreatedAtDesc(), limit);
+        return trimToLimit(postRepository.findTop12ByOrderByCreatedAtDesc(), limit);
     }
 
     @Override
@@ -76,8 +75,6 @@ public class PostServiceImpl implements PostService {
     public List<Post> getAll() {
         return postRepository.findAll();
     }
-
-    /* ========================= WRITE METHODS ========================= */
 
     @Override
     @Transactional
@@ -117,13 +114,11 @@ public class PostServiceImpl implements PostService {
     public void adminDelete(Long postId, User adminUser) {
         ensureNotBlocked(adminUser);
         if (!isAdmin(adminUser)) {
-            throw new AuthorizationException("You are not allowed to delete this post");
+            throw new AuthorizationException(YOU_ARE_NOT_ALLOWED_TO_DELETE_THIS_POST);
         }
         Post post = getPostOrThrow(postId);
         postRepository.delete(post);
     }
-
-    /* ========================= LIKE / UNLIKE ========================= */
 
     @Override
     @Transactional
@@ -199,7 +194,7 @@ public class PostServiceImpl implements PostService {
         return trimToLimit(postRepository.findPostsByTagName(tag.getName()), limit);
     }
 
-    /* ========================= HELPER METHODS ========================= */
+    /* ------------------------- Helpers ------------------------- */
 
     private boolean isAdmin(User user) {
         for (Role role : user.getRoles()) {
@@ -212,7 +207,7 @@ public class PostServiceImpl implements PostService {
 
     private void ensureNotBlocked(User user) {
         if (user.isBlocked()) {
-            throw new AuthorizationException("Blocked users cannot perform this action.");
+            throw new AuthorizationException(BLOCKED_USERS_CANNOT_PERFORM_THIS_ACTION);
         }
     }
 
@@ -229,7 +224,7 @@ public class PostServiceImpl implements PostService {
         boolean isAdmin = isAdmin(currentUser);
 
         if (!isOwner && !isAdmin) {
-            throw new AuthorizationException("You are not allowed to modify this post.");
+            throw new AuthorizationException(YOU_ARE_NOT_ALLOWED_TO_MODIFY_THIS_POST);
         }
     }
 }

@@ -36,14 +36,16 @@ public class UserController {
     private final UserMapper mapper;
     private final AuthenticationUtils authenticationUtils;
 
-    /* ------------------------- User part ------------------------- */
+    /* ------------------------- Public part ------------------------- */
 
     @GetMapping("/public/users/count")
     public ResponseEntity<?> getTotalUserCount() {
         return ResponseEntity
                 .status(HttpStatus.OK)
-                .body(userService.getTotalUserCount());
+                .body(mapper.longToUserTotalCountResponseDto(userService.getTotalUserCount()));
     }
+
+    /* ------------------------- Private part ------------------------- */
 
     @GetMapping("/private/users/profile")
     public ResponseEntity<?> getProfile() {

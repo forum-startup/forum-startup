@@ -34,7 +34,7 @@ public class CommentController {
     private final AuthenticationUtils authenticationUtils;
     private final CommentMapper mapper;
 
-    /* ================= Public ================= */
+    /* ------------------------- Public part ------------------------- */
 
     @GetMapping("/private/posts/{postId}/comments")
     public ResponseEntity<Page<CommentResponseDto>> listByPost(
@@ -48,7 +48,7 @@ public class CommentController {
         return ResponseEntity.ok(comments.map(mapper::toDto));
     }
 
-    /* ================= Private ================= */
+    /* ------------------------- Private part ------------------------- */
 
     @PostMapping("/private/posts/{postId}/comments")
     @PreAuthorize("hasRole('USER')")
@@ -80,18 +80,6 @@ public class CommentController {
         return ResponseEntity.noContent().build();
     }
 
-    /* ================= Admin Delete ================= */
-
-    @DeleteMapping("/admin/comments/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> adminSoftDelete(@PathVariable Long id) {
-        User admin = authenticationUtils.getAuthenticatedUser();
-        commentService.softAdminDeleteComment(id, admin);
-        return ResponseEntity.noContent().build();
-    }
-
-    /* ================= Likes ================= */
-
     @PostMapping("/private/comments/{id}/likes")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CommentResponseDto> like(@PathVariable Long id) {
@@ -106,5 +94,15 @@ public class CommentController {
         User user = authenticationUtils.getAuthenticatedUser();
         Comment c = commentService.unlikeComment(id, user);
         return ResponseEntity.ok(mapper.toDto(c));
+    }
+
+    /* ------------------------- Admin part ------------------------- */
+
+    @DeleteMapping("/admin/comments/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> adminSoftDelete(@PathVariable Long id) {
+        User admin = authenticationUtils.getAuthenticatedUser();
+        commentService.softAdminDeleteComment(id, admin);
+        return ResponseEntity.noContent().build();
     }
 }

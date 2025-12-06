@@ -14,7 +14,7 @@ export function usePosts() {
 
         try {
             const response = await api.get("/public/posts/count")
-            count.value = response.data
+            count.value = response.data.count
         } catch (e) {
             errors.value = err.response?.data?.message || 'Failed to load post count'
         } finally {
@@ -27,7 +27,7 @@ export function usePosts() {
         errors.value = null
 
         try {
-            const response = await api.get("/public/posts/recent?limit=10")
+            const response = await api.get("/public/posts/recent")
             posts.value = response.data
         } catch (e) {
             errors.value = err.response?.data?.message || 'Failed to load recent posts'
