@@ -55,9 +55,7 @@ export function useRegisterForm() {
             await api.post('/public/auth/register', form.value)
             await router.push('/login')
         } catch (err) {
-            // Handle backend validation errors properly
             if (err.response?.status === 400 && err.response?.data?.errors) {
-                // Spring Boot usually returns { errors: { field: "message" } }
                 errors.value = err.response.data.errors
             } else if (err.response?.data?.message) {
                 serverError.value = err.response.data.message

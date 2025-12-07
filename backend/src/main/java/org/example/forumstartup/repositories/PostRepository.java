@@ -13,7 +13,7 @@ public interface PostRepository extends JpaRepository<Post, Long>, JpaSpecificat
 
     List<Post> findByCreatorId(Long creatorId, Sort sort);
 
-    List<Post> findTop10ByOrderByCreatedAtDesc();
+    List<Post> findTop12ByOrderByCreatedAtDesc();
 
     @Query("""
             SELECT p FROM Post p

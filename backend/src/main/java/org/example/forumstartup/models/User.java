@@ -44,18 +44,12 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    /*
-        nullable by default
-     */
     @Column(name = "phone_number")
     private String phoneNumber;
 
     @Column(name = "profile_photo_url")
     private String profilePhotoUrl;
 
-    /*
-        set to false by default
-     */
     @Column(name = "is_blocked", nullable = false)
     private boolean isBlocked = false;
 
@@ -97,10 +91,6 @@ public class User {
         this.phoneNumber = phoneNumber;
     }
 
-    /*
-        Will automatically set createdAt to current time
-        when an entity is about to be created in the DB
-     */
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();

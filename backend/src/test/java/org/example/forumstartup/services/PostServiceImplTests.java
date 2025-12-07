@@ -80,14 +80,14 @@ public class PostServiceImplTests {
         //Arrange
         createPost(1L);
         createPost(2L);
-        when(postRepository.findTop10ByOrderByCreatedAtDesc()).
+        when(postRepository.findTop12ByOrderByCreatedAtDesc()).
                 thenReturn(List.of(createPost(1L), createPost(2L)));
         //Act
         List<Post> result = postService.mostRecent(10);
 
         //Assert
         assertEquals(2, result.size());
-        verify(postRepository).findTop10ByOrderByCreatedAtDesc();
+        verify(postRepository).findTop12ByOrderByCreatedAtDesc();
 
     }
 

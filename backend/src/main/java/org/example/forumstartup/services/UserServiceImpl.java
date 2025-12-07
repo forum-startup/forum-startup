@@ -25,10 +25,6 @@ import java.util.List;
 
 import static org.example.forumstartup.utils.StringConstants.*;
 
-/*
-    TODO: MAKE SURE TO ADD GLOBAL EXCEPTION HANDLER!
- */
-
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -94,7 +90,7 @@ public class UserServiceImpl implements UserService {
     public User create(User user) {
         if (!isDuplicate(user)) {
             Role userRole = roleRepository.findByName(ERole.ROLE_USER)
-                    .orElseThrow(() -> new EntityNotFoundException("User role not found"));
+                    .orElseThrow(() -> new EntityNotFoundException(USER_ROLE_NOT_FOUND));
             user.getRoles().add(userRole);
 
             user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -159,7 +155,7 @@ public class UserServiceImpl implements UserService {
         User actingUser = authenticationUtils.getAuthenticatedUser();
 
         if (!isAdmin(actingUser) && !actingUser.getId().equals(id)) {
-            throw new AuthorizationException("You are not allowed to delete this account.");
+            throw new AuthorizationException(YOU_ARE_NOT_ALLOWED_TO_DELETE_THIS_ACCOUNT);
         }
 
         User deleteUser;
@@ -253,6 +249,8 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.findAll(spec, pageable);
     }
+
+    /* ------------------------- Helpers ------------------------- */
 
     private boolean isDuplicate(User user) {
         return userRepository.existsByUsernameOrEmail(user.getUsername(), user.getEmail());

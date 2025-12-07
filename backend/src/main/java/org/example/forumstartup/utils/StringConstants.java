@@ -31,4 +31,12 @@ public class StringConstants {
     public static final String WRONG_POST_REPLY_EXCEPTION_MESSAGE = "Reply must be under the same post as the parent comment.";
     public static final String OWN_COMMENT_LIKE_EXCEPTION_MESSAGE = "You cannot like your own comment.";
     public static final String COMMENT_MODIFICATION_EXCEPTION_MESSAGE = "You are not allowed to modify this comment.";
+
+    public static final String USER_ROLE_NOT_FOUND = "User role not found";
+    public static final String YOU_ARE_NOT_ALLOWED_TO_DELETE_THIS_ACCOUNT = "You are not allowed to delete this account.";
+
+    public static final String BLOCKED_USERS_CANNOT_PERFORM_THIS_ACTION = "Blocked users cannot perform this action.";
+    public static final String YOU_ARE_NOT_ALLOWED_TO_MODIFY_THIS_POST = "You are not allowed to modify this post.";
+    public static final String YOU_ARE_NOT_ALLOWED_TO_DELETE_THIS_POST = "You are not allowed to delete this post";
+
 }

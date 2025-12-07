@@ -43,16 +43,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        // checks header for Swagger UI Authorization
+        String authHeader = request.getHeader("Authorization");
         String token = null;
 
-        if (request.getCookies() != null) {
-            for (Cookie cookie : request.getCookies()) {
-                if ("jwt".equals(cookie.getName())) {
-                    token = cookie.getValue();
-                    break;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        }
+
+        if (token == null) {
+            if (request.getCookies() != null) {
+                for (Cookie cookie : request.getCookies()) {
+                    if ("jwt".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        break;
+                    }
                 }
             }
         }
+
 
         if (token != null && jwt.validateToken(token)) {
             String username = jwt.getUsernameFromToken(token);

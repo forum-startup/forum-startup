@@ -1,23 +1,15 @@
 package org.example.forumstartup.mappers;
 
-import lombok.RequiredArgsConstructor;
-import org.example.forumstartup.dtos.post.PostCreateDto;
-import org.example.forumstartup.dtos.post.PostUpdateDto;
-import org.example.forumstartup.dtos.post.PostWithLikeStatusResponseDto;
+import org.example.forumstartup.dtos.post.*;
 import org.example.forumstartup.models.Post;
-import org.example.forumstartup.dtos.post.PostResponseDto;
 import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.models.User;
-import org.example.forumstartup.utils.AuthenticationUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 @Component
-@RequiredArgsConstructor
 public class PostMapper {
-
-    private final AuthenticationUtils authenticationUtils;
 
     public PostResponseDto toSimpleDto(Post post) {
         List<String> tagNames = post.getTags()
@@ -59,6 +51,12 @@ public class PostMapper {
             list.add(toSimpleDto(p));
         }
         return list;
+    }
+
+    public PostTotalCountResponseDto longToPostTotalCountResponseDto(Long count) {
+        return new PostTotalCountResponseDto(
+                count
+        );
     }
 
     // Post Response when user logged in (includes information if a user has liked the post or not)
