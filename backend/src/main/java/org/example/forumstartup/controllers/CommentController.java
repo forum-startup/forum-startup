@@ -1,5 +1,7 @@
 package org.example.forumstartup.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.comment.CommentResponseDto;
@@ -29,13 +31,17 @@ import java.util.List;
         origins = "http://localhost:5173",
         allowCredentials = "true"
 )
+@Tag(name = "Comments")
 public class CommentController {
     private final CommentService commentService;
     private final AuthenticationUtils authenticationUtils;
     private final CommentMapper mapper;
 
-    /* ------------------------- Public part ------------------------- */
+    /* ------------------------- Private part ------------------------- */
 
+    @Operation(
+            summary = "Get comments by post id"
+    )
     @GetMapping("/private/posts/{postId}/comments")
     public ResponseEntity<Page<CommentResponseDto>> listByPost(
             @PathVariable Long postId,
@@ -45,11 +51,15 @@ public class CommentController {
     ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(PageableUtils.parseSort(sort)));
         Page<Comment> comments = commentService.listCommentsByPost(postId, pageable);
-        return ResponseEntity.ok(comments.map(mapper::toDto));
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(comments.map(mapper::toDto));
     }
 
-    /* ------------------------- Private part ------------------------- */
-
+    @Operation(
+            summary = "Create comment"
+    )
     @PostMapping("/private/posts/{postId}/comments")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CommentResponseDto> createComment(
@@ -58,9 +68,15 @@ public class CommentController {
     ) {
         User user = authenticationUtils.getAuthenticatedUser();
         Comment c = commentService.createComment(postId, user, dto);
-        return ResponseEntity.status(HttpStatus.CREATED).body(mapper.toDto(c));
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(mapper.toDto(c));
     }
 
+    @Operation(
+            summary = "Update comment"
+    )
     @PutMapping("/private/comments/{id}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CommentResponseDto> update(
@@ -69,40 +85,69 @@ public class CommentController {
     ) {
         User user = authenticationUtils.getAuthenticatedUser();
         Comment updated = commentService.updateComment(id, user, dto);
-        return ResponseEntity.ok(mapper.toDto(updated));
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(mapper.toDto(updated));
     }
 
+    @Operation(
+            summary = "Delete comment",
+            description = "Soft deletes a comment"
+    )
     @DeleteMapping("/private/comments/{id}")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> softDelete(@PathVariable Long id) {
         User user = authenticationUtils.getAuthenticatedUser();
         commentService.softDeleteComment(id, user);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
+    @Operation(
+            summary = "Like comment"
+    )
     @PostMapping("/private/comments/{id}/likes")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CommentResponseDto> like(@PathVariable Long id) {
         User user = authenticationUtils.getAuthenticatedUser();
         Comment c = commentService.likeComment(id, user);
-        return ResponseEntity.ok(mapper.toDto(c));
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(mapper.toDto(c));
     }
 
+    @Operation(
+            summary = "Unlike comment"
+    )
     @DeleteMapping("/private/comments/{id}/likes")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<CommentResponseDto> unlike(@PathVariable Long id) {
         User user = authenticationUtils.getAuthenticatedUser();
         Comment c = commentService.unlikeComment(id, user);
-        return ResponseEntity.ok(mapper.toDto(c));
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(mapper.toDto(c));
     }
 
     /* ------------------------- Admin part ------------------------- */
 
+    @Operation(
+            summary = "Admin delete comment",
+            description = "Admin soft deletes any comment"
+    )
     @DeleteMapping("/admin/comments/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> adminSoftDelete(@PathVariable Long id) {
         User admin = authenticationUtils.getAuthenticatedUser();
         commentService.softAdminDeleteComment(id, admin);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }

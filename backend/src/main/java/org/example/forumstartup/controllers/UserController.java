@@ -1,5 +1,7 @@
 package org.example.forumstartup.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.user.AdminSelfUpdateDto;
@@ -30,6 +32,7 @@ import java.util.List;
         origins = "http://localhost:5173",
         allowCredentials = "true"
 )
+@Tag(name = "Users")
 public class UserController {
 
     private final UserService userService;
@@ -38,6 +41,9 @@ public class UserController {
 
     /* ------------------------- Public part ------------------------- */
 
+    @Operation(
+            summary = "Get total users count"
+    )
     @GetMapping("/public/users/count")
     public ResponseEntity<?> getTotalUserCount() {
         return ResponseEntity
@@ -47,23 +53,34 @@ public class UserController {
 
     /* ------------------------- Private part ------------------------- */
 
+    @Operation(
+            summary = "Get user profile"
+    )
     @GetMapping("/private/users/profile")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> getProfile() {
-        try {
-            User actingUser = authenticationUtils.getAuthenticatedUser();
-            ProfileResponseDto response = mapper.userToProfileResponseDto(actingUser);
-            return ResponseEntity.ok(response);
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(401).body("Invalid token");
-        }
+        User actingUser = authenticationUtils.getAuthenticatedUser();
+        ProfileResponseDto response = mapper.userToProfileResponseDto(actingUser);
+
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
     }
 
+    @Operation(
+            summary = "Self update user information"
+    )
     @PutMapping("/private/users/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> updateUserSelf(@RequestBody @Valid UserSelfUpdateDto dto) {
-        return ResponseEntity.ok(mapper.userToResponseDto(userService.update(dto)));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(mapper.userToResponseDto(userService.update(dto)));
     }
 
+    @Operation(
+            summary = "Delete user"
+    )
     @DeleteMapping("/private/users/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> deleteSelf() {
@@ -75,14 +92,24 @@ public class UserController {
 
     /* ------------------------- Admin part ------------------------- */
 
+    @Operation(
+            summary = "Get user by id",
+            description = "Admin get any user"
+    )
     @GetMapping("/admin/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponseDtoForAdmin> getUserById(@PathVariable Long id) {
         UserResponseDtoForAdmin dto = mapper.userToResponseDtoForAdmin(userService.getUserById(id));
 
-        return ResponseEntity.ok(dto);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(dto);
     }
 
+    @Operation(
+            summary = "Filter users",
+            description = "Admin filter users by username, first name or email"
+    )
     @GetMapping("/admin/users")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<UserResponseDtoForAdmin>> filterUsers(
@@ -95,42 +122,75 @@ public class UserController {
 
         Page<User> users = userService.filterUsers(searchQuery, pageable);
 
-        return ResponseEntity.ok(
-                users.map(mapper::userToResponseDtoForAdmin)
-        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(users.map(mapper::userToResponseDtoForAdmin));
     }
 
+    @Operation(
+            summary = "Self update admin user "
+    )
     @PutMapping("/admin/update/me")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> updateAdminSelf(@RequestBody @Valid AdminSelfUpdateDto dto) {
-        return ResponseEntity.ok(mapper.userToResponseDto(userService.update(dto)));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(mapper.userToResponseDto(userService.update(dto)));
     }
 
+    @Operation(
+            summary = "Delete user",
+            description = "Admin delete any user"
+    )
     @DeleteMapping("/admin/users/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         userService.delete(id);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
+    @Operation(
+            summary = "Block user",
+            description = "Admin block any user"
+    )
     @PutMapping("/admin/users/{id}/block")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<?> block(@PathVariable Long id) {
         userService.block(id);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
+    @Operation(
+            summary = "Unblock user",
+            description = "Admin unblock any user"
+    )
     @PutMapping("/admin/users/{id}/unblock")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<?> unblock(@PathVariable Long id) {
         userService.unblock(id);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 
+    @Operation(
+            summary = "Promote user",
+            description = "Admin promote any user to admin"
+    )
     @PutMapping("/admin/users/{id}/promote")
     @PreAuthorize("hasRole('ADMIN')")
     ResponseEntity<?> promoteToAdmin(@PathVariable Long id) {
         userService.promoteToAdmin(id);
-        return ResponseEntity.noContent().build();
+
+        return ResponseEntity
+                .status(HttpStatus.NO_CONTENT)
+                .build();
     }
 }

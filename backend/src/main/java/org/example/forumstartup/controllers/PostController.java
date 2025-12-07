@@ -45,6 +45,9 @@ public class PostController {
 
     /* ------------------------- Public part ------------------------- */
 
+    @Operation(
+            summary = "Get the total posts count"
+    )
     @GetMapping("/public/posts/count")
     public ResponseEntity<?> getTotalPostCount() {
         return ResponseEntity
@@ -52,8 +55,10 @@ public class PostController {
                 .body(mapper.longToPostTotalCountResponseDto(service.getTotalPostCount()));
     }
 
+    @Operation(
+            summary = "Get most recent posts"
+    )
     @GetMapping("/public/posts/recent")
-    @Operation(summary = "Get most recent posts")
     public ResponseEntity<List<PostResponseDto>> getRecent(
             @RequestParam(defaultValue = "12") int limit
     ) {
@@ -64,7 +69,10 @@ public class PostController {
 
     /* ------------------------- Private part ------------------------- */
 
-    @Operation(summary = "Get all posts")
+    @Operation(
+            summary = "Get all posts or filter by search query",
+            description = "Get all posts or filter by title, content or creator username"
+    )
     @GetMapping("/private/posts")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Page<PostWithLikeStatusResponseDto>> filterPosts(
@@ -78,19 +86,16 @@ public class PostController {
         Page<Post> posts = service.filterPosts(searchQuery, pageable);
         User current = authenticationUtils.getAuthenticatedUser();
 
-        return ResponseEntity.ok(
-                posts.map(p -> mapper.toAuthenticatedDto(p, current))
-        );
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(posts.map(p -> mapper.toAuthenticatedDto(p, current)));
     }
 
     @Operation(
-            summary = "Get post by ID (private)",
-            description = "Only authenticated users can view posts."
+            summary = "Get post by id"
     )
-    @ApiResponse(responseCode = "200", description = "Post returned successfully")
-    @ApiResponse(responseCode = "404", description = "Post not found")
     @GetMapping("/private/posts/{postId}")
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<PostWithLikeStatusResponseDto> getById(@PathVariable long postId) {
         User actingUser = authenticationUtils.getAuthenticatedUser();
         Post post = service.getById(postId);
@@ -101,11 +106,10 @@ public class PostController {
     }
 
     @Operation(
-            summary = "Get posts by author (private)",
-            description = "Only authenticated users can view posts by a specific user."
+            summary = "Get posts by author"
     )
     @GetMapping("/private/posts/by-author/{creatorId}")
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<PostWithLikeStatusResponseDto>> getByCreatorId(
             @PathVariable long creatorId,
             @RequestParam(defaultValue = "10") int limit
@@ -117,9 +121,11 @@ public class PostController {
                 .body(mapper.toAuthenticatedDtoList(service.findByCreatorId(creatorId, limit), actingUser));
     }
 
+    @Operation(
+            summary = "Create a post"
+    )
     @PostMapping("/private/posts")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Create a post")
     public ResponseEntity<PostWithLikeStatusResponseDto> create(@Valid @RequestBody PostCreateDto dto) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         Post created = service.create(mapper.toPost(dto), currentUser);
@@ -129,9 +135,11 @@ public class PostController {
                 .body(mapper.toAuthenticatedDto(created, currentUser));
     }
 
+    @Operation(
+            summary = "Edit a post"
+    )
     @PutMapping("/private/posts/{postId}")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Edit a post")
     public ResponseEntity<PostWithLikeStatusResponseDto> edit(
             @PathVariable long postId,
             @Valid @RequestBody PostUpdateDto dto
@@ -144,9 +152,11 @@ public class PostController {
                 .body(mapper.toAuthenticatedDto(updated, currentUser));
     }
 
+    @Operation(
+            summary = "Delete a post you own"
+    )
     @DeleteMapping("/private/posts/{postId}")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Delete a post you own")
     public ResponseEntity<Void> delete(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.delete(postId, currentUser);
@@ -156,9 +166,11 @@ public class PostController {
                 .build();
     }
 
+    @Operation(
+            summary = "Like a post"
+    )
     @PostMapping("/private/posts/{postId}/like")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Like a post")
     public ResponseEntity<Void> like(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.like(postId, currentUser);
@@ -168,9 +180,11 @@ public class PostController {
                 .build();
     }
 
+    @Operation(
+            summary = "Unlike a post"
+    )
     @PostMapping("/private/posts/{postId}/unlike")
     @PreAuthorize("hasRole('USER')")
-    @Operation(summary = "Unlike a post")
     public ResponseEntity<Void> unlike(@PathVariable long postId) {
         User currentUser = authenticationUtils.getAuthenticatedUser();
         service.unlike(postId, currentUser);
@@ -182,9 +196,11 @@ public class PostController {
 
     /* ------------------------- Admin part ------------------------- */
 
+    @Operation(
+            summary = "Admin delete any post"
+    )
     @DeleteMapping("/admin/posts/{postId}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "Admin deletes any post")
     public ResponseEntity<Void> adminDelete(@PathVariable long postId) {
         User admin = authenticationUtils.getAuthenticatedUser();
         service.adminDelete(postId, admin);
@@ -196,8 +212,11 @@ public class PostController {
 
     /* ------------------------- Tag operations ------------------------- */
 
+    @Operation(
+            summary = "Get posts by tag name"
+    )
     @GetMapping("/private/posts/by-tag/{tagName}")
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<List<PostWithLikeStatusResponseDto>> getPostsByTag(
             @PathVariable String tagName,
             @RequestParam(defaultValue = "10") int limit
@@ -208,8 +227,11 @@ public class PostController {
                 .body(mapper.toAuthenticatedDtoList(service.findByTag(tagName, limit), actingUser));
     }
 
+    @Operation(
+            summary = "Add a tag"
+    )
     @PostMapping("/private/posts/{postId}/tags")
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> addTags(
             @PathVariable long postId,
             @RequestBody @Valid AddTagsDto dto
@@ -222,8 +244,11 @@ public class PostController {
                 .build();
     }
 
+    @Operation(
+            summary = "Delete a tag"
+    )
     @DeleteMapping("/private/posts/{postId}/tags")
-    @PreAuthorize("hasAnyRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> removeTag(
             @PathVariable long postId,
             @RequestBody RemoveTagDto dto

@@ -1,8 +1,10 @@
 package org.example.forumstartup.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.models.Tag;
 import org.example.forumstartup.services.TagService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,15 +17,16 @@ import java.util.List;
         origins = "http://localhost:5173",
         allowCredentials = "true"
 )
+@io.swagger.v3.oas.annotations.tags.Tag(name = "Tags")
 public class TagController {
 
     private final TagService tagService;
 
     /* ------------------------- Public part ------------------------- */
 
-    /**
-     * List all tags alphabetically
-     */
+    @Operation(
+            summary = "Get all tags alphabetically"
+    )
     @GetMapping("/public/tags")
     public ResponseEntity<List<String>> listAllTags() {
         List<String> tags = tagService
@@ -33,12 +36,19 @@ public class TagController {
                 .sorted()
                 .toList();
 
-        return ResponseEntity.ok(tags);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(tags);
     }
 
+    @Operation(
+            summary = "Get a tag by its name"
+    )
     @GetMapping("/public/tags/{tagName}")
     public ResponseEntity<String> getTagByName(@PathVariable String tagName) {
         Tag tag = tagService.getByName(tagName);
-        return ResponseEntity.ok(tag.getName());
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(tag.getName());
     }
 }

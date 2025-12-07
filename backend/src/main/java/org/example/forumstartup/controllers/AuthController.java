@@ -1,5 +1,8 @@
 package org.example.forumstartup.controllers;
 
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.example.forumstartup.dtos.jwt.JwtResponseDto;
@@ -11,6 +14,7 @@ import org.example.forumstartup.security.JwtUtils;
 import org.example.forumstartup.services.UserService;
 import org.example.forumstartup.mappers.UserMapper;
 import org.example.forumstartup.utils.AuthenticationUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,6 +23,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +33,7 @@ import java.util.stream.Collectors;
         origins = "http://localhost:5173",
         allowCredentials = "true"
 )
+@Tag(name = "Authentication")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -38,15 +44,10 @@ public class AuthController {
 
     /* ------------------------- Public part ------------------------- */
 
-    /*
-            Passes username/password to UserDetailsService which returns a UserDetails object
-            and checks the password against the PasswordEncoder
-
-            BadCredentialsException -> wrong username or password
-            DisabledException -> user is blocked
-            LockedException -> account locked
-
-    */
+    @Operation(
+            summary = "Log in",
+            description = "Generates JWT Token and sets it in Cookie"
+    )
     @PostMapping("/public/auth/login")
     public ResponseEntity<?> login(@RequestBody LoginUserDto dto) {
 
@@ -70,20 +71,30 @@ public class AuthController {
                 .build();
 
         return ResponseEntity
-                .ok()
+                .status(HttpStatus.OK)
                 .header("Set-Cookie", cookie.toString())
                 .build();
     }
 
+    @Operation(
+            summary = "Register",
+            description = "Create user"
+    )
     @PostMapping("/public/auth/register")
     public ResponseEntity<?> register(@RequestBody RegisterUserDto dto) {
         User user = mapper.registerDtoToUser(dto);
 
-        return ResponseEntity.ok(userService.create(user));
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(userService.create(user));
     }
 
     /* ------------------------- Private part ------------------------- */
 
+    @Operation(
+            summary = "Log out",
+            description = "Sets cookie to expired"
+    )
     @PostMapping("private/auth/logout")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> logout() {
@@ -95,11 +106,13 @@ public class AuthController {
                 .sameSite("Strict")
                 .build();
 
-        return ResponseEntity.ok()
+        return ResponseEntity
+                .status(HttpStatus.OK)
                 .header("Set-Cookie", cookie.toString())
                 .build();
     }
 
+    @Hidden
     @GetMapping("/private/auth/me")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<?> me() {
@@ -107,6 +120,8 @@ public class AuthController {
 
         UserResponseDto response = mapper.userToResponseDto(actingUser);
 
-        return ResponseEntity.ok(response);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(response);
     }
 }
