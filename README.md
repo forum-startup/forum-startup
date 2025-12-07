@@ -109,11 +109,11 @@ Follow these steps to set up and run the application:
 
 ## Web App Demo
 
-![Demo](./demo/demo.gif)
+![Demo](./docs/demo/demo.gif)
 
 ## Database Diagram
 
-<img src="/backend/db/diagram.png" alt="Database Diagram" height="600" width="600" />
+<img src="./docs/db_diagram/diagram.png" alt="Database Diagram" height="600" width="600" />
 
 ## API Documentation
 
