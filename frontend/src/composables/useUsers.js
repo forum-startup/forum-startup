@@ -7,7 +7,7 @@ export function useUsers() {
     const count = ref(null)
     const users = ref([])
     const isLoading = ref(false)
-    const isBlocking = ref(new Set()) // tracks which users are being blocked/unblocked
+    const isBlocking = ref(new Set())
     const error = ref(null)
 
     async function fetchTotalUserCount() {

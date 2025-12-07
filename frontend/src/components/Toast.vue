@@ -1,3 +1,19 @@
+<script setup>
+import {computed} from "vue";
+
+defineProps({
+  message: String,
+  type: String,
+  onClose: Function
+})
+
+const iconBg = computed(() => {
+  return type === 'success'
+      ? 'bg-cyan-500/20'
+      : 'bg-red-500/20'
+})
+</script>
+
 <template>
   <div class="flex items-center gap-4 px-6 py-4 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl">
     <div class="flex-shrink-0">
@@ -20,19 +36,3 @@
     </button>
   </div>
 </template>
-
-<script setup>
-import {computed} from "vue";
-
-defineProps({
-  message: String,
-  type: String,
-  onClose: Function
-})
-
-const iconBg = computed(() => {
-  return type === 'success'
-      ? 'bg-cyan-500/20'
-      : 'bg-red-500/20'
-})
-</script>

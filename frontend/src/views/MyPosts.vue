@@ -49,7 +49,7 @@ async function remove(postId) {
         </button>
       </div>
 
-      <!-- Posts Table (Card Style) -->
+      <!-- Posts Table-->
       <div v-else class="rounded-2xl bg-gray-800/50 backdrop-blur-sm ring-1 ring-white/10 shadow-2xl overflow-hidden">
         <div class="px-8 py-6 border-b border-white/10">
           <div class="flex items-center justify-between">
@@ -69,7 +69,7 @@ async function remove(postId) {
         <ul class="divide-y divide-white/10">
           <li v-for="post in posts" :key="post.postId" class="hover:bg-white/5 transition">
             <div class="px-8 py-6 flex items-center justify-between">
-              <!-- Left: Post Info -->
+              <!-- Post Info -->
               <router-link
                   :to="{ name: 'Post', params: { postId: post.postId } }"
                   class="flex items-center gap-5">

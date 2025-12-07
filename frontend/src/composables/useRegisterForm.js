@@ -15,12 +15,10 @@ export function useRegisterForm() {
         password: '',
     })
 
-    // UI state
     const errors = ref({})
     const serverError = ref('')
     const isLoading = ref(false)
 
-    // Validation rules
     const rules = {
         firstName: (v) => (v.length >= 4 && v.length <= 32) || 'First name must be 4–32 characters',
         lastName:  (v) => (v.length >= 4 && v.length <= 32) || 'Last name must be 4–32 characters',
@@ -29,7 +27,6 @@ export function useRegisterForm() {
         password:  (v) => (v.length >= 6 && v.length <= 50) || 'Password must be 6–50 characters',
     }
 
-    // Run all validations
     function validate() {
         errors.value = {}
         let isValid = true

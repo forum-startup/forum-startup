@@ -87,7 +87,6 @@ export function useProfile() {
         reader.onload = (ev) => {
             const dataUrl = ev.target.result
             avatarPreview.value = dataUrl
-            // Save immediately or wait for "Save" button
             updateProfile({ profilePhotoUrl: dataUrl })
         }
         reader.readAsDataURL(file)

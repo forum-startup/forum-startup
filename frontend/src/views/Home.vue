@@ -91,7 +91,7 @@ function formatDate(dateString) {
       <!-- Header + Search + Stats -->
       <div class="mb-20 space-y-16 text-center">
 
-        <!-- 1. Guest View -->
+        <!-- Guest View -->
         <div v-if="!isLoggedIn">
           <h1 class="text-5xl sm:text-6xl font-bold text-white leading-tight">
             Latest Posts
@@ -145,7 +145,7 @@ function formatDate(dateString) {
           </div>
         </div>
 
-        <!-- 2. Logged-in: Welcome Message -->
+        <!-- Logged-in: Welcome Message -->
         <div v-else>
           <h1 class="text-5xl sm:text-6xl font-bold text-white leading-tight">
             Welcome back,<br class="hidden sm:inline"/>
@@ -215,13 +215,13 @@ function formatDate(dateString) {
                   {{ post.title }}
                 </h3>
 
-                <!-- Content: Always 3 lines -->
+                <!-- Content -->
                 <p class="text-gray-400 line-clamp-3 leading-relaxed min-h-[4.5rem]">
                   {{ post.content }}
                 </p>
               </div>
 
-              <!-- Bottom: Footer (always sticks to bottom) -->
+              <!-- Footer -->
               <div class="px-8 py-6 border-t border-white/10 bg-gradient-to-t from-black/20 to-transparent">
                 <div class="flex items-center justify-between">
                   <button

@@ -30,7 +30,6 @@ async function saveProfile() {
 </script>
 
 <template>
-  <!-- This uses the same flex-1 centering as Login/Register -->
   <div class="flex-1 flex items-center justify-center px-6 py-12">
     <div class="w-full max-w-2xl space-y-10">
 

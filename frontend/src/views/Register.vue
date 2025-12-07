@@ -50,7 +50,6 @@ const {
           Register
         </button>
 
-        <!-- Fix error display -->
         <div v-if="Object.keys(errors).length > 0" class="space-y-2">
           <p v-for="(message, field) in errors" :key="field" class="text-red-400 text-sm">
             {{ message }}
