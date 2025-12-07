@@ -115,6 +115,12 @@ Follow these steps to set up and run the application:
 
 <img src="/backend/db/diagram.png" alt="Database Diagram" height="600" width="600" />
 
+## API Documentation
+
+The API documentation is available at [Swagger UI](http://localhost:8080/swagger-ui/index.html#/).
+
+Most endpoints are protected by JWT - see /api/public/auth/login to generate a token
+
 ## Contributors
 For further information, please feel free to contact us:
 
