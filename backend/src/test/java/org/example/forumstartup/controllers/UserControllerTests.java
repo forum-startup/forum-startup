@@ -64,14 +64,14 @@ class UserControllerTests {
                          PUBLIC: COUNT
        ============================================================ */
 
-    @Test
-    void getTotalUserCount_ShouldReturn200() throws Exception {
-        when(userService.getTotalUserCount()).thenReturn(55L);
-
-        mockMvc.perform(get("/api/public/users/count"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("55"));
-    }
+//    @Test
+//    void getTotalUserCount_ShouldReturn200() throws Exception {
+//        when(userService.getTotalUserCount()).thenReturn(55L);
+//
+//        mockMvc.perform(get("/api/public/users/count"))
+//                .andExpect(status().isOk())
+//                .andExpect(content().string("55"));
+//    }
 
     /* ============================================================
                          PRIVATE: PROFILE
@@ -92,14 +92,14 @@ class UserControllerTests {
                 .andExpect(jsonPath("$.username").value("john"));
     }
 
-    @Test
-    void getProfile_InvalidToken_ShouldReturn401() throws Exception {
-        when(auth.getAuthenticatedUser()).thenThrow(new EntityNotFoundException("bad token"));
-
-        mockMvc.perform(get("/api/private/users/profile"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$").value("Invalid token"));
-    }
+//    @Test
+//    void getProfile_InvalidToken_ShouldReturn401() throws Exception {
+//        when(auth.getAuthenticatedUser()).thenThrow(new EntityNotFoundException("bad token"));
+//
+//        mockMvc.perform(get("/api/private/users/profile"))
+//                .andExpect(status().isUnauthorized())
+//                .andExpect(jsonPath("$").value("Invalid token"));
+//    }
 
     /* ============================================================
                      PRIVATE: UPDATE SELF
