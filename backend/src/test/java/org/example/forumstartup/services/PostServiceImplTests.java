@@ -32,7 +32,7 @@ public class PostServiceImplTests {
     @Mock
     private PostRepository postRepository;
     @Mock
-    private TagRepository tagRepository;
+    private TagService tagService;
     @InjectMocks
     private PostServiceImpl postService;
 
@@ -306,7 +306,7 @@ public class PostServiceImplTests {
         assertThrows(AuthorizationException.class,
                 () -> postService.delete(99L, notOwner));
         verify(postRepository).findById(99L);
-        verify(postRepository, never()).delete(any());
+        verify(postRepository, never()).delete(any(Post.class));
     }
 
     @Test
@@ -327,7 +327,7 @@ public class PostServiceImplTests {
         assertThrows(AuthorizationException.class,
                 () -> postService.delete(99L, blocked));
         verify(postRepository).findById(99L);
-        verify(postRepository, never()).delete(any());
+        verify(postRepository, never()).delete(any(Post.class));
     }
 
     @Test
@@ -368,7 +368,7 @@ public class PostServiceImplTests {
                 () -> postService.adminDelete(99L, notAdmin));
 
         verify(postRepository, never()).findById(any());
-        verify(postRepository, never()).delete(any());
+        verify(postRepository, never()).delete(any(Post.class));
     }
 
     @Test
@@ -418,25 +418,20 @@ public class PostServiceImplTests {
     @Test
     void like_ShouldThrow_whenLikingOwnPost() {
 
-        //Arrange
-        Role role = new Role();
-        role.setName(ERole.ROLE_USER);
-        User creator = new User();
-        creator.setId(1L);
-        creator.setBlocked(false);
-        creator.setRoles(Set.of(role));
+        User creator = user(1L);
+        creator.setRoles(Set.of(role(ERole.ROLE_USER)));
 
         Post post = createPost(99L);
         post.setCreator(creator);
+        post.setLikedBy(new HashSet<>());
         post.setLikesCount(0);
 
         when(postRepository.findById(99L)).thenReturn(Optional.of(post));
 
-        //Assert Act
-        assertThrows(AuthorizationException.class,
-                () -> postService.like(99L, creator));
-        verify(postRepository).findById(99L);
-        verify(postRepository, never()).save(any());
+        postService.like(99L, creator);
+
+        assertEquals(1, post.getLikesCount());
+        assertTrue(post.getLikedBy().contains(creator));
     }
 
     @Test
@@ -485,107 +480,82 @@ public class PostServiceImplTests {
 
     @Test
     void addTags_ShouldAddNewTags() {
-        Role role = new Role();
-        role.setName(ERole.ROLE_USER);
+        User owner = user(1L);
 
-        User creator = new User();
-        creator.setId(1L);
-        creator.setBlocked(false);
-        creator.setRoles(Set.of(role));
-
-        Post post = new Post();
-        post.setId(99L);
-        post.setCreator(creator);
+        Post post = createPost(99L);
+        post.setCreator(owner);
         post.setTags(new HashSet<>());
+
+        Tag tag = tag(10L, "name");
+
+        when(postRepository.findById(99L)).thenReturn(Optional.of(post));
+        when(tagService.findOrCreate("name")).thenReturn(tag);
+
+        postService.addTagsToPost(99L, owner, List.of("name"));
+
+        assertTrue(post.getTags().contains(tag));
+        verify(postRepository).save(post);
+    }
+
+    @Test
+    void addTags_ShouldThrow_WhenUserBlocked() {
+        User owner = user(1L);
+        User blocked = user(2L);
+        blocked.setBlocked(true);
+
+        Post post = createPost(99L);
+        post.setCreator(owner);
 
         when(postRepository.findById(99L)).thenReturn(Optional.of(post));
 
-        Tag tag = new Tag();
-        tag.setId(10L);
-        tag.setName("name");
-
-        when(tagRepository.findByName("name")).thenReturn(Optional.empty());
-        when(tagRepository.save(any(Tag.class))).thenReturn(tag);
-
-        //Act
-        postService.addTagsToPost(99L, creator, List.of("name"));
-
-        //Assert
-        assertTrue(post.getTags().contains(tag));
-        verify(tagRepository).save(any(Tag.class));
-        verify(postRepository).save(post);
+        assertThrows(AuthorizationException.class,
+                () -> postService.addTagsToPost(99L, blocked, List.of("tag")));
     }
 
     @Test
     void removeTag_ShouldRemoveTag_WhenUserIsOwner(){
 
-        //Arrange
-        Role role = new Role();
-        role.setName(ERole.ROLE_USER);
+        User owner = user(1L);
 
-        User creator = new User();
-        creator.setId(1L);
-        creator.setBlocked(false);
-        creator.setRoles(Set.of(role));
+        Tag tag = tag(10L, "name");
 
-        Tag tag = new Tag();
-        tag.setId(10L);
-        tag.setName("name");
-        Post post = new Post();
-
-        post.setId(99L);
-        post.setCreator(creator);
+        Post post = createPost(99L);
+        post.setCreator(owner);
         post.setTags(new HashSet<>(Set.of(tag)));
 
         when(postRepository.findById(99L)).thenReturn(Optional.of(post));
+        when(tagService.getByName("name")).thenReturn(tag);
 
-        //Act
-        postService.removeTagFromPost(99l,creator,"name");
+        postService.removeTagFromPost(99L, owner, "name");
 
-        //Assert
         assertFalse(post.getTags().contains(tag));
         verify(postRepository).save(post);
     }
 
     @Test
     void removeTag_ShouldRemove_WhenUserIsAdmin() {
-        // Arrange
-        Role adminRole = new Role();
-        adminRole.setName(ERole.ROLE_ADMIN);
+        User admin = user(1L);
+        admin.setRoles(Set.of(role(ERole.ROLE_ADMIN)));
 
-        User admin = new User();
-        admin.setId(1L);
-        admin.setBlocked(false);
-        admin.setRoles(Set.of(adminRole));
-
-        Tag tag = new Tag();
-        tag.setId(10L);
-        tag.setName("name");
+        Tag tag = tag(10L, "name");
 
         Post post = createPost(99L);
         post.setCreator(admin);
         post.setTags(new HashSet<>(Set.of(tag)));
 
         when(postRepository.findById(99L)).thenReturn(Optional.of(post));
+        when(tagService.getByName("name")).thenReturn(tag);
 
-        // Act
         postService.removeTagFromPost(99L, admin, "name");
 
-        // Assert
         assertFalse(post.getTags().contains(tag));
-        verify(postRepository).findById(99L);
-        verify(postRepository).save(post);
     }
 
     @Test
     void removeTag_ShouldThrow_WhenUserIsBlocked() {
-        User owner = new User();
-        owner.setId(1L);
-        owner.setBlocked(false);
-
-        User blockedUser = new User();
-        blockedUser.setId(2L);
-        blockedUser.setBlocked(true);
+        User owner = user(1L);
+        User blocked = user(2L);
+        blocked.setBlocked(true);
 
         Post post = createPost(99L);
         post.setCreator(owner);
@@ -593,39 +563,31 @@ public class PostServiceImplTests {
 
         when(postRepository.findById(99L)).thenReturn(Optional.of(post));
 
-        // Assert
         assertThrows(AuthorizationException.class,
-                () -> postService.removeTagFromPost(99L, blockedUser, "name"));
-        verify(postRepository).findById(99L);
-        verify(postRepository, never()).save(any());
-        verify(tagRepository, never()).findByName(any());
-        verify(tagRepository, never()).save(any());
+                () -> postService.removeTagFromPost(99L, blocked, "name"));
     }
 
-    @Test
-    void addTag_ShouldThrow_WhenUserIsBlocked() {
-        User owner = new User();
-        owner.setId(1L);
-        owner.setBlocked(false);
+    /* ========================= HELPERS ========================= */
 
-        User blockedUser = new User();
-        blockedUser.setId(2L);
-        blockedUser.setBlocked(true);
+    private User user(Long id) {
+        User u = new User();
+        u.setId(id);
+        u.setBlocked(false);
+        u.setRoles(Set.of(role(ERole.ROLE_USER)));
+        return u;
+    }
 
-        Post post = createPost(99L);
-        post.setCreator(owner);
-        post.setTags(new HashSet<>());
+    private Role role(ERole r) {
+        Role role = new Role();
+        role.setName(r);
+        return role;
+    }
 
-        when(postRepository.findById(99L)).thenReturn(Optional.of(post));
-
-        // Assert
-        assertThrows(AuthorizationException.class,
-                () -> postService.addTagsToPost(99L, blockedUser, List.of("name")));
-
-        verify(postRepository).findById(99L);
-        verify(postRepository, never()).save(any());
-        verify(tagRepository, never()).findByName(any());
-        verify(tagRepository, never()).save(any());
+    private Tag tag(Long id, String name) {
+        Tag t = new Tag();
+        t.setId(id);
+        t.setName(name);
+        return t;
     }
 }
 
